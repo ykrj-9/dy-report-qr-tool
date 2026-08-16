@@ -248,7 +248,7 @@
       border-radius: 18px;
     }
 
-    #qrcode canvas {
+    #qrcode img {
       max-width: 100%;
       height: auto;
     }
@@ -325,7 +325,8 @@
     <textarea
       id="input"
       placeholder="例如：
-1.94 04/25 ... #抖音 #张真源
+
+8.94 04/25 ... #抖音 #张真源
 https://v.douyin.com/zzysqsjzbdr/
 复制此链接，打开抖音搜索，直接观看视频！"
     ></textarea>
@@ -450,13 +451,11 @@ https://v.douyin.com/zzysqsjzbdr/
 
 </div>
 
-<!-- 優先使用大陸字節跳動官方 CDN，並設定備援機制 -->
-<script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js';"></script>
-<script>
-  if (typeof QRCode === 'undefined') {
-    document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"><\/script>');
-  }
+
+<script
+  src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js">
 </script>
+
 
 <script>
 
@@ -613,33 +612,9 @@ function createFinalURL(videoID) {
 */
 
 async function resolveShortURL(url) {
-
-  const response =
-    await fetch(
-      "/api/resolve?url=" +
-      encodeURIComponent(url)
-    );
-
-
-  const data =
-    await response.json();
-
-
-  if (
-    !response.ok ||
-    !data.ok
-  ) {
-
-    throw new Error(
-      data.error ||
-      "短網址解析失敗"
-    );
-
-  }
-
-
-  return data;
-
+  throw new Error(
+    "GitHub Pages 單檔版無法直接解析 v.douyin.com 短網址。請貼完整 douyin.com/video/... 網址，或直接貼影片 ID。"
+  );
 }
 
 
@@ -849,43 +824,17 @@ generateButton
       生成 QR
       */
 
-      const QRBox =
-        document.querySelector(
-          "#qrcode"
-        );
+      const QRBox = document.querySelector("#qrcode");
 
+QRBox.innerHTML = "";
 
-      QRBox.innerHTML = "";
+const qr = qrcode(0, "M");
 
+qr.addData(finalURL);
 
-      const canvas =
-        document.createElement(
-          "canvas"
-        );
+qr.make();
 
-
-      QRBox.appendChild(
-        canvas
-      );
-
-
-      if (typeof QRCode === 'undefined') {
-        throw new Error("QR Code 模組載入失敗，請檢查網路連線。");
-      }
-
-      await QRCode.toCanvas(
-
-        canvas,
-
-        finalURL,
-
-        {
-          width: 220,
-          margin: 1,
-          errorCorrectionLevel: "M"
-        }
-
-      );
+QRBox.innerHTML = qr.createImgTag(6, 4);
 
 
 
@@ -996,44 +945,16 @@ document.querySelector(
 =========================================
 */
 
-document.querySelector(
-  "#saveQR"
-)
-.addEventListener(
-  "click",
-  () => {
+document.querySelector("#saveQR")
+.addEventListener("click", async () => {
+  const img = document.querySelector("#qrcode img");
+  if (!img) return;
 
-    const canvas =
-      document.querySelector(
-        "#qrcode canvas"
-      );
-
-
-    if (!canvas) {
-      return;
-    }
-
-
-    const link =
-      document.createElement(
-        "a"
-      );
-
-
-    link.href =
-      canvas.toDataURL(
-        "image/png"
-      );
-
-
-    link.download =
-      "douyin-qr.png";
-
-
-    link.click();
-
-  }
-);
+  const link = document.createElement("a");
+  link.href = img.src;
+  link.download = "douyin-qr.png";
+  link.click();
+});
 
 </script>
 
