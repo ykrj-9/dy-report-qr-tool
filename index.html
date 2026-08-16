@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 瀏覽器分頁標題 -->
+  <title>抖印聚宝码生产器</title>
+
+  <style>
+    :root {
+      --background: #121815;
+      --card: #1a231f;
+      --text: #e2ebe6;
+      --muted: #859c8e;
+      --border: #2a3a32;
+
+      --button: #2d5a43;
+      --button-hover: #376e52;
+      --button-text: #ffffff;
+
+      --field: #141c18;
+      --result: #16201b;
+
+      --small-btn-bg: #24332b;
+      --small-btn-hover: #2f4238;
+      --footer-text: #81c784;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      background: var(--background);
+      color: var(--text);
+
+      font-family:
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        sans-serif;
+    }
+
+    .container {
+      width: min(820px, calc(100% - 32px));
+      margin: 60px auto;
+    }
+
+    .card {
+      padding: 36px;
+
+      background: var(--card);
+
+      border: 1px solid var(--border);
+      border-radius: 24px;
+
+      box-shadow:
+        0 15px 45px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      margin: 0 0 9px;
+
+      font-size: 30px;
+      letter-spacing: -0.6px;
+      color: #ffffff;
+    }
+
+    .description {
+      margin-bottom: 30px;
+
+      color: var(--muted);
+
+      line-height: 1.75;
+    }
+
+    label {
+      display: block;
+
+      margin-bottom: 9px;
+
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 135px;
+
+      padding: 16px;
+
+      background: var(--field);
+      color: var(--text);
+
+      border: 1px solid var(--border);
+      border-radius: 15px;
+
+      outline: none;
+      resize: vertical;
+
+      font-family: inherit;
+      font-size: 15px;
+      line-height: 1.65;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    textarea:focus {
+      background: #18221d;
+      border-color: #376e52;
+    }
+
+    .hint {
+      margin-top: 8px;
+
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .main-button {
+      width: 100%;
+      height: 50px;
+
+      margin-top: 16px;
+
+      background: var(--button);
+      color: var(--button-text);
+
+      border: 0;
+      border-radius: 14px;
+
+      cursor: pointer;
+
+      font-size: 15px;
+      font-weight: 500;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
+
+    .main-button:hover {
+      background: var(--button-hover);
+    }
+
+    .main-button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    #status {
+      min-height: 20px;
+
+      margin-top: 14px;
+
+      color: var(--muted);
+
+      font-size: 13px;
+    }
+
+    #result {
+      display: none;
+
+      margin-top: 28px;
+      padding-top: 28px;
+
+      border-top: 1px solid var(--border);
+
+      grid-template-columns:
+        minmax(0, 1fr)
+        250px;
+
+      gap: 30px;
+    }
+
+    #result.show {
+      display: grid;
+    }
+
+    .item {
+      margin-bottom: 19px;
+    }
+
+    .item-title {
+      margin-bottom: 7px;
+
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .item-value {
+      padding: 13px;
+
+      background: var(--result);
+
+      border: 1px solid var(--border);
+      border-radius: 12px;
+
+      font-size: 13px;
+      line-height: 1.6;
+
+      word-break: break-all;
+    }
+
+    .buttons {
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 8px;
+
+      margin-top: 8px;
+    }
+
+    .small-button {
+      padding: 9px 13px;
+
+      background: var(--small-btn-bg);
+      color: var(--text);
+
+      border: 1px solid var(--border);
+      border-radius: 10px;
+
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .small-button:hover {
+      background: var(--small-btn-hover);
+    }
+
+    .qr-area {
+      text-align: center;
+    }
+
+    #qrcode {
+      width: 250px;
+      height: 250px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 14px;
+
+      background: white;
+
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+
+    #qrcode canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .qr-note {
+      margin-top: 12px;
+
+      color: var(--muted);
+
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .footer-warning {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--footer-text);
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.8;
+      letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 650px) {
+
+      .container {
+        margin: 25px auto;
+      }
+
+      .card {
+        padding: 22px;
+      }
+
+      #result.show {
+        grid-template-columns: 1fr;
+      }
+
+      .qr-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="card">
+
+    <!-- ===== 大標題 ===== -->
+    <h1>
+      抖印聚宝码生产器
+    </h1>
+
+
+    <!-- ===== 說明文字 ===== -->
+    <div class="description">
+      直接贴上抖音“🔗复制链接”取得的整段分享文字，
+      系统会自动找出视频网址并解析。
+    </div>
+
+
+    <label for="input">
+      分享內容
+    </label>
+
+
+    <textarea
+      id="input"
+      placeholder="例如：
+
+8.94 04/25 ... #抖音 #张真源
+https://v.douyin.com/zzysqsjzbdr/
+复制此链接，打开抖音搜索，直接观看视频！"
+    ></textarea>
+
+
+    <div class="hint">
+      支援整段分享文字、v.douyin.com 链接、完整视频链接或视频 ID。
+    </div>
+
+
+    <button
+      id="generate"
+      class="main-button"
+    >
+      解析並生成 QR
+    </button>
+
+
+    <div id="status"></div>
+
+
+    <div id="result">
+
+      <div>
+
+        <div class="item">
+
+          <div class="item-title">
+            原分享链接
+          </div>
+
+          <div
+            id="videoURL"
+            class="item-value"
+          ></div>
+
+        </div>
+
+
+        <div class="item">
+
+          <div class="item-title">
+            视频 ID
+          </div>
+
+          <div
+            id="videoID"
+            class="item-value"
+          ></div>
+
+        </div>
+
+
+        <div class="item">
+
+          <div class="item-title">
+            生成聚宝链接
+          </div>
+
+          <div
+            id="finalURL"
+            class="item-value"
+          ></div>
+
+
+          <div class="buttons">
+
+            <button
+              id="copyURL"
+              class="small-button"
+            >
+              复制链接
+            </button>
+
+
+            <button
+              id="openURL"
+              class="small-button"
+            >
+              开启链接
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="qr-area">
+
+        <div id="qrcode"></div>
+
+
+        <div class="buttons"
+             style="justify-content:center;">
+
+          <button
+            id="saveQR"
+            class="small-button"
+          >
+            保存 QR
+          </button>
+
+        </div>
+
+
+        <div class="qr-note">
+          QR Code 内容就是生成后的聚宝链接。
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ===== 頁尾聲明標語 ===== -->
+    <div class="footer-warning">
+      仅供张真源粉丝专用！<br>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- 優先使用大陸字節跳動官方 CDN，並設定備援機制 -->
+<script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js';"></script>
+<script>
+  if (typeof QRCode === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"><\/script>');
+  }
+</script>
+
+<script>
+
+/*
+=========================================
+从整段分享文字抓出 Douyin 链接
+=========================================
+*/
+
+function extractDouyinURL(text) {
+
+  const matches =
+    text.match(
+      /https?:\/\/[^\s<>"'，。！？、]+/gi
+    );
+
+
+  if (!matches) {
+    return null;
+  }
+
+
+  const cleaned =
+    matches.map(url =>
+      url.replace(
+        /[)\]}>，。！？、]+$/,
+        ""
+      )
+    );
+
+
+  /*
+  優先 v.douyin.com
+  */
+
+  let url =
+    cleaned.find(url =>
+      url.toLowerCase()
+         .includes(
+           "v.douyin.com"
+         )
+    );
+
+
+  if (url) {
+    return url;
+  }
+
+
+  /*
+  再找一般 douyin.com
+  */
+
+  url =
+    cleaned.find(url =>
+      url.toLowerCase()
+         .includes(
+           "douyin.com"
+         )
+    );
+
+
+  return url || null;
+
+}
+
+
+
+/*
+=========================================
+從內容直接找影片 ID
+=========================================
+*/
+
+function extractVideoID(text) {
+
+  const patterns = [
+
+    /\/video\/(\d{10,})/,
+
+    /[?&](?:object_id|modal_id|aweme_id|item_id|group_id)=(\d{10,})/,
+
+    /\b(\d{16,22})\b/
+
+  ];
+
+
+  for (const pattern of patterns) {
+
+    const match =
+      String(text)
+      .match(pattern);
+
+
+    if (match) {
+      return match[1];
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+
+/*
+=========================================
+生成最終 URL
+=========================================
+*/
+
+function createFinalURL(videoID) {
+
+  return (
+
+    "https://api.amemv.com/" +
+
+    "falcon/" +
+
+    "fe_douyin_security_react/" +
+
+    "mortise/" +
+
+    "9879902d-907f-46f3-85e0-678c416f366a/" +
+
+
+    "?report_type=video" +
+
+
+    "&object_id=" +
+    encodeURIComponent(videoID) +
+
+
+    "&enter_from=aweme_reflow" +
+
+
+    "&hide_nav_bar=1" +
+
+
+    "&should_full_screen=1"
+
+  );
+
+}
+
+
+
+/*
+=========================================
+呼叫 Vercel API
+=========================================
+*/
+
+async function resolveShortURL(url) {
+
+  const response =
+    await fetch(
+      "/api/resolve?url=" +
+      encodeURIComponent(url)
+    );
+
+
+  const data =
+    await response.json();
+
+
+  if (
+    !response.ok ||
+    !data.ok
+  ) {
+
+    throw new Error(
+      data.error ||
+      "短網址解析失敗"
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+
+/*
+=========================================
+主流程
+=========================================
+*/
+
+const generateButton =
+  document.querySelector(
+    "#generate"
+  );
+
+
+generateButton
+.addEventListener(
+  "click",
+  async () => {
+
+
+    const rawInput =
+      document.querySelector(
+        "#input"
+      )
+      .value
+      .trim();
+
+
+    const status =
+      document.querySelector(
+        "#status"
+      );
+
+
+    if (!rawInput) {
+
+      status.textContent =
+        "請先貼上內容。";
+
+      return;
+
+    }
+
+
+    generateButton.disabled =
+      true;
+
+
+    status.textContent =
+      "解析中…";
+
+
+    document.querySelector(
+      "#result"
+    )
+    .classList
+    .remove(
+      "show"
+    );
+
+
+    try {
+
+      let videoURL =
+        extractDouyinURL(
+          rawInput
+        );
+
+
+      let videoID = null;
+
+
+
+      /*
+      如果直接貼影片 ID
+      */
+
+      if (
+        /^\d{16,22}$/
+        .test(rawInput)
+      ) {
+
+        videoID =
+          rawInput;
+
+        videoURL =
+          "直接輸入影片 ID";
+
+      }
+
+
+
+      /*
+      如果網址本身已有 ID
+      */
+
+      if (
+        !videoID &&
+        videoURL
+      ) {
+
+        videoID =
+          extractVideoID(
+            videoURL
+          );
+
+      }
+
+
+
+      /*
+      如果是 v.douyin.com，
+      呼叫後端解析 redirect
+      */
+
+      if (
+        !videoID &&
+        videoURL &&
+        videoURL
+          .includes(
+            "v.douyin.com"
+          )
+      ) {
+
+        const result =
+          await resolveShortURL(
+            videoURL
+          );
+
+
+        videoID =
+          result.video_id;
+
+      }
+
+
+
+      /*
+      沒找到網址時，
+      再試試整段文字是不是含 ID
+      */
+
+      if (!videoID) {
+
+        videoID =
+          extractVideoID(
+            rawInput
+          );
+
+      }
+
+
+
+      if (!videoURL && !videoID) {
+
+        throw new Error(
+          "這段文字中沒有找到抖音網址。"
+        );
+
+      }
+
+
+      if (!videoID) {
+
+        throw new Error(
+          "沒有解析到影片 ID。"
+        );
+
+      }
+
+
+
+      const finalURL =
+        createFinalURL(
+          videoID
+        );
+
+
+
+      /*
+      顯示資料
+      */
+
+      document.querySelector(
+        "#videoURL"
+      ).textContent =
+        videoURL ||
+        "—";
+
+
+      document.querySelector(
+        "#videoID"
+      ).textContent =
+        videoID;
+
+
+      document.querySelector(
+        "#finalURL"
+      ).textContent =
+        finalURL;
+
+
+
+      /*
+      生成 QR
+      */
+
+      const QRBox =
+        document.querySelector(
+          "#qrcode"
+        );
+
+
+      QRBox.innerHTML = "";
+
+
+      const canvas =
+        document.createElement(
+          "canvas"
+        );
+
+
+      QRBox.appendChild(
+        canvas
+      );
+
+
+      if (typeof QRCode === 'undefined') {
+        throw new Error("QR Code 模組載入失敗，請檢查網路連線。");
+      }
+
+      await QRCode.toCanvas(
+
+        canvas,
+
+        finalURL,
+
+        {
+          width: 220,
+          margin: 1,
+          errorCorrectionLevel: "M"
+        }
+
+      );
+
+
+
+      document.querySelector(
+        "#result"
+      )
+      .classList
+      .add(
+        "show"
+      );
+
+
+      status.textContent =
+        "完成 ✓";
+
+    }
+
+
+    catch (error) {
+
+      console.error(error);
+
+
+      status.textContent =
+        "解析失敗：" +
+        error.message;
+
+    }
+
+
+    finally {
+
+      generateButton.disabled =
+        false;
+
+    }
+
+  }
+);
+
+
+
+/*
+=========================================
+複製 URL
+=========================================
+*/
+
+document.querySelector(
+  "#copyURL"
+)
+.addEventListener(
+  "click",
+  async () => {
+
+    const value =
+      document.querySelector(
+        "#finalURL"
+      )
+      .textContent;
+
+
+    await navigator.clipboard
+      .writeText(value);
+
+  }
+);
+
+
+
+/*
+=========================================
+開啟 URL
+=========================================
+*/
+
+document.querySelector(
+  "#openURL"
+)
+.addEventListener(
+  "click",
+  () => {
+
+    const value =
+      document.querySelector(
+        "#finalURL"
+      )
+      .textContent;
+
+
+    if (value) {
+
+      window.open(
+        value,
+        "_blank"
+      );
+
+    }
+
+  }
+);
+
+
+
+/*
+=========================================
+儲存 QR PNG
+=========================================
+*/
+
+document.querySelector(
+  "#saveQR"
+)
+.addEventListener(
+  "click",
+  () => {
+
+    const canvas =
+      document.querySelector(
+        "#qrcode canvas"
+      );
+
+
+    if (!canvas) {
+      return;
+    }
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      canvas.toDataURL(
+        "image/png"
+      );
+
+
+    link.download =
+      "douyin-qr.png";
+
+
+    link.click();
+
+  }
+);
+
+</script>
+
+</body>
+</html>
