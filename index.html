@@ -1,463 +1,528 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>蘸豆吧！（｡◝‿◜｡）</title>
+
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#0d1813;
+  --panel:#14231b;
+  --panel-2:#101d17;
+  --field:#0f1a15;
+  --line:#2d4738;
+  --green:#2f7a50;
+  --green-hover:#3b8d60;
+  --text:#eef3ef;
+  --muted:#91a097;
+  --soft:#6f7d75;
+  --danger:#ff9d9d;
+}
+
+*{box-sizing:border-box}
+
+html{
+  background:var(--bg);
+  -webkit-text-size-adjust:100%;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei","Noto Sans TC",sans-serif;
+  background:var(--bg);
+}
+
+.page{
+  width:min(940px,calc(100% - 28px));
+  margin:46px auto;
+}
+
+.hero{
+  text-align:center;
+  margin-bottom:28px;
+}
+
+.hero-mark{
+  display:none;
+}
+
+.site-title{
+  margin:0;
+  font-family:"Arial Rounded MT Bold","Microsoft JhengHei","Microsoft YaHei",sans-serif;
+  font-size:42px;
+  font-weight:700;
+  letter-spacing:0px;
+  line-height:1.2;
+  color:#f2f5f2;
+}
+
+.title-rule{
+  width:54px;
+  height:2px;
+  margin:18px auto 0;
+  background:var(--green);
+  border-radius:999px;
+}
+
+.title-rule::before,
+.title-rule::after,
+.title-gem{
+  display:none;
+}
+
+.toolbox{
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:var(--panel);
+  box-shadow:0 18px 45px rgba(0,0,0,.22);
+  overflow:hidden;
+}
+
+.toolbox::before,
+.toolbox::after{
+  display:none;
+}
+
+.tabs{
+  display:flex;
+  padding:0;
+  border-bottom:1px solid var(--line);
+  background:#0f1c16;
+}
+
+.tab{
+  flex:1;
+  appearance:none;
+  border:0;
+  border-right:1px solid var(--line);
+  padding:16px 20px;
+  color:var(--muted);
+  background:transparent;
+  font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.tab:last-child{
+  border-right:0;
+}
+
+.tab.active{
+  color:#fff;
+  background:var(--green);
+}
+
+.tab-icon{
+  margin-right:6px;
+}
+
+.content{
+  padding:34px 38px 28px;
+}
+
+.panel{display:none}
+.panel.active{display:block}
+
+.panel-title{
+  margin:0 0 8px;
+  font-family:"Noto Serif SC","Songti SC","STSong",serif;
+  font-size:28px;
+  font-weight:700;
+  color:#f1f4f1;
+}
+
+.panel-desc{
+  color:var(--muted);
+  line-height:1.7;
+  margin-bottom:24px;
+  font-size:14px;
+}
+
+.section-label{
+  margin-bottom:9px;
+  font-size:14px;
+  font-weight:600;
+  color:#dce4df;
+}
+
+.section-label::before{
+  display:none;
+}
+
+textarea{
+  width:100%;
+  min-height:130px;
+  resize:vertical;
+  padding:15px 16px;
+  color:var(--text);
+  background:var(--field);
+  border:1px solid var(--line);
+  border-radius:12px;
+  outline:none;
+  font:inherit;
+  font-size:15px;
+  line-height:1.65;
+}
+
+textarea:focus{
+  border-color:var(--green);
+}
+
+.hint{
+  margin-top:7px;
+  color:var(--soft);
+  font-size:12px;
+  line-height:1.6;
+}
+
+.main-btn{
+  width:100%;
+  margin-top:15px;
+  height:48px;
+  border:0;
+  border-radius:11px;
+  color:#fff;
+  background:var(--green);
+  font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.main-btn:hover{
+  background:var(--green-hover);
+}
+
+.main-btn:disabled{
+  opacity:.55;
+  cursor:default;
+}
+
+.status{
+  min-height:21px;
+  margin-top:11px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.error{color:var(--danger)}
+
+.divider{
+  height:1px;
+  margin:24px 0;
+  background:var(--line);
+}
+
+.divider::before,
+.divider::after,
+.divider span{
+  display:none;
+}
+
+.result{
+  display:none;
+  grid-template-columns:minmax(0,1fr) 250px;
+  gap:26px;
+}
+
+.result.show{display:grid}
+
+.result-title{
+  margin:0 0 13px;
+  font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
+  font-size:17px;
+  font-weight:700;
+  color:#edf2ee;
+}
+
+.item{
+  margin-bottom:15px;
+}
+
+.item-title{
+  margin-bottom:6px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.item-value{
+  padding:11px 12px;
+  min-height:43px;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  font-size:13px;
+  line-height:1.6;
+  word-break:break-all;
+  color:#dfe7e1;
+}
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+
+.small-btn{
+  border:1px solid var(--line);
+  background:#193126;
+  color:#e4ebe6;
+  padding:8px 11px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.small-btn:hover{
+  background:#203c2f;
+}
+
+.qr-side{
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.qr-frame{
+  width:230px;
+  min-height:230px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border-radius:12px;
+}
+
+.qr-frame img{
+  max-width:100%;
+  height:auto;
+}
+
+.qr-caption{
+  color:var(--soft);
+  font-size:11px;
+  margin-top:10px;
+}
+
+.weibo-result{
+  grid-template-columns:1fr;
+}
+
+.footer{
+  text-align:center;
+  margin-top:28px;
+  padding-top:22px;
+  border-top:1px solid var(--line);
+}
+
+.footer-main{
+  color:#a9b8ae;
+  font-family:"Noto Serif SC","Songti SC","STSong",serif;
+  font-weight:600;
+  font-size:15px;
+  letter-spacing:1px;
+}
+
+.footer-sub{
+  margin-top:6px;
+  color:#737c77;
+  font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
+  font-size:12px;
+  font-weight:400;
+  letter-spacing:1px;
+}
+
+.footer-en{
+  margin-top:6px;
+  color:#737c77;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:12px;
+  font-style:italic;
+  letter-spacing:1px;
+
+  display:inline-block;
+  transform:skewX(-7deg);
+}
+
+@media(max-width:720px){
+  .page{
+    margin:24px auto 32px;
+  }
+
+  .site-title{
+    font-size:31px;
+    letter-spacing:2px;
+  }
+
+  .tabs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .tab{
+    padding:13px 10px;
+    font-size:14px;
+  }
+
+  .content{
+    padding:26px 20px 24px;
+  }
+
+  .panel-title{
+    font-size:24px;
+  }
+
+  .result.show{
+    display:block;
+  }
+
+  .qr-side{
+    margin-top:20px;
+  }
+
+  .qr-frame{
+    width:220px;
+    min-height:220px;
+  }
+}
+</style>
 
-  <!-- 瀏覽器分頁標題 -->
-  <title>抖印聚宝码生产器</title>
-
-  <style>
-    :root {
-      --background: #121815;
-      --card: #1a231f;
-      --text: #e2ebe6;
-      --muted: #859c8e;
-      --border: #2a3a32;
-
-      --button: #2d5a43;
-      --button-hover: #376e52;
-      --button-text: #ffffff;
-
-      --field: #141c18;
-      --result: #16201b;
-
-      --small-btn-bg: #24332b;
-      --small-btn-hover: #2f4238;
-      --footer-text: #81c784;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-
-      background: var(--background);
-      color: var(--text);
-
-      font-family:
-        "Noto Sans TC",
-        "Microsoft JhengHei",
-        sans-serif;
-    }
-
-    .container {
-      width: min(820px, calc(100% - 32px));
-      margin: 60px auto;
-    }
-
-    .card {
-      padding: 36px;
-
-      background: var(--card);
-
-      border: 1px solid var(--border);
-      border-radius: 24px;
-
-      box-shadow:
-        0 15px 45px rgba(0, 0, 0, 0.4);
-    }
-
-    h1 {
-      margin: 0 0 9px;
-
-      font-size: 30px;
-      letter-spacing: -0.6px;
-      color: #ffffff;
-    }
-
-    .description {
-      margin-bottom: 30px;
-
-      color: var(--muted);
-
-      line-height: 1.75;
-    }
-
-    label {
-      display: block;
-
-      margin-bottom: 9px;
-
-      font-size: 13px;
-      color: var(--text);
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 135px;
-
-      padding: 16px;
-
-      background: var(--field);
-      color: var(--text);
-
-      border: 1px solid var(--border);
-      border-radius: 15px;
-
-      outline: none;
-      resize: vertical;
-
-      font-family: inherit;
-      font-size: 15px;
-      line-height: 1.65;
-      transition: border-color 0.2s, background-color 0.2s;
-    }
-
-    textarea:focus {
-      background: #18221d;
-      border-color: #376e52;
-    }
-
-    .hint {
-      margin-top: 8px;
-
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .main-button {
-      width: 100%;
-      height: 50px;
-
-      margin-top: 16px;
-
-      background: var(--button);
-      color: var(--button-text);
-
-      border: 0;
-      border-radius: 14px;
-
-      cursor: pointer;
-
-      font-size: 15px;
-      font-weight: 500;
-      transition: background-color 0.2s, opacity 0.2s;
-    }
-
-    .main-button:hover {
-      background: var(--button-hover);
-    }
-
-    .main-button:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-
-    #status {
-      min-height: 20px;
-
-      margin-top: 14px;
-
-      color: var(--muted);
-
-      font-size: 13px;
-    }
-
-    #result {
-      display: none;
-
-      margin-top: 28px;
-      padding-top: 28px;
-
-      border-top: 1px solid var(--border);
-
-      grid-template-columns:
-        minmax(0, 1fr)
-        250px;
-
-      gap: 30px;
-    }
-
-    #result.show {
-      display: grid;
-    }
-
-    .item {
-      margin-bottom: 19px;
-    }
-
-    .item-title {
-      margin-bottom: 7px;
-
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .item-value {
-      padding: 13px;
-
-      background: var(--result);
-
-      border: 1px solid var(--border);
-      border-radius: 12px;
-
-      font-size: 13px;
-      line-height: 1.6;
-
-      word-break: break-all;
-    }
-
-    .buttons {
-      display: flex;
-
-      flex-wrap: wrap;
-
-      gap: 8px;
-
-      margin-top: 8px;
-    }
-
-    .small-button {
-      padding: 9px 13px;
-
-      background: var(--small-btn-bg);
-      color: var(--text);
-
-      border: 1px solid var(--border);
-      border-radius: 10px;
-
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .small-button:hover {
-      background: var(--small-btn-hover);
-    }
-
-    .qr-area {
-      text-align: center;
-    }
-
-    #qrcode {
-      width: 250px;
-      height: 250px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      padding: 14px;
-
-      background: white;
-
-      border: 1px solid var(--border);
-      border-radius: 18px;
-    }
-
-    #qrcode img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    .qr-note {
-      margin-top: 12px;
-
-      color: var(--muted);
-
-      font-size: 11px;
-      line-height: 1.6;
-    }
-
-    .footer-warning {
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      color: var(--footer-text);
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 1.8;
-      letter-spacing: 0.5px;
-    }
-
-    @media (max-width: 650px) {
-
-      .container {
-        margin: 25px auto;
-      }
-
-      .card {
-        padding: 22px;
-      }
-
-      #result.show {
-        grid-template-columns: 1fr;
-      }
-
-      .qr-area {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-    }
-  </style>
 </head>
 
 <body>
+<div class="page">
+  <header class="hero">
+    <div class="hero-mark">✦　✧　✦</div>
+    <h1 class="site-title">蘸豆小工具</h1>
+    <div class="title-rule"><span class="title-gem"></span></div>
+  </header>
 
-<div class="container">
-
-  <div class="card">
-
-    <!-- ===== 大標題 ===== -->
-    <h1>
-      抖印聚宝码生产器
-    </h1>
-
-
-    <!-- ===== 說明文字 ===== -->
-    <div class="description">
-      直接贴上抖音“🔗复制链接”取得的整段分享文字，
-      系统会自动找出视频网址并解析。
+  <main class="toolbox">
+    <div class="tabs">
+      <button class="tab active" data-tab="douyin">🗑️抖印聚宝生成器</button>
+      <button class="tab" data-tab="weibo">🧹微博评论直达</button>
     </div>
 
+    <div class="content">
+      <section id="douyin" class="panel active">
+        <h2 class="panel-title">抖印聚宝生成器</h2>
+        <div class="panel-desc">貼上抖音网页版的完整视频链接，解析视频 ID 並生成聚宝链接及二维码。</div>
 
-    <label for="input">
-      分享內容
-    </label>
-
-
-    <textarea
-      id="input"
-      placeholder="例如：
-需为用网页打开抖印视频链接后的完整网址进行解析
+        <div class="section-label">输入完整抖印分享链接</div>
+        <textarea id="dyInput" placeholder="需为用网页打开抖印视频链接后的完整网址进行解析
 （例1：https://www.iesdouyin.com/share/...）
-（例2：https://www.douyin.com/video/123xxx...)"
-    ></textarea>
+（例2：https://www.douyin.com/video/123xxx...)"></textarea>
+        <div class="hint">支援网页版完整视频链接或视频 ID。</div>
 
+        <button id="dyGenerate" class="main-btn">解析並生成QR Code！</button>
+        <div id="dyStatus" class="status"></div>
 
-    <div class="hint">
-      支援整段分享文字、v.douyin.com 链接、完整视频链接或视频 ID。
+        <div class="divider"><span></span></div>
+
+        <div id="dyResult" class="result">
+          <div>
+            <h3 class="result-title">生成結果</h3>
+
+            <div class="item">
+              <div class="item-title">原分享链接</div>
+              <div id="dyVideoURL" class="item-value"></div>
+            </div>
+
+            <div class="item">
+              <div class="item-title">视频 ID</div>
+              <div id="dyVideoID" class="item-value"></div>
+            </div>
+
+            <div class="item">
+              <div class="item-title">生成聚宝链接</div>
+              <div id="dyFinalURL" class="item-value"></div>
+              <div class="actions">
+                <button id="dyCopyURL" class="small-btn">复制链接</button>
+                <button id="dyOpenURL" class="small-btn">开启链接</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="qr-side">
+            <h3 class="result-title">二维码预览</h3>
+            <div id="dyQrcode" class="qr-frame"></div>
+            <div class="actions">
+              <button id="dySaveQR" class="small-btn">保存 QR</button>
+            </div>
+            <div class="qr-caption">QR Code 内容就是生成后的聚宝链接。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="weibo" class="panel">
+        <h2 class="panel-title">微博评论直达</h2>
+        <div class="panel-desc">貼上微博轻享版的评论聚宝链接，自动提取其中的rid，並生成相对应评论的直达链接。</div>
+
+        <div class="section-label">输入微博聚宝评论链接</div>
+        <textarea id="wbInput" placeholder="https://service.account.weibo.com/reportspamobile?...&rid=xxxxxxxxx&type=2..."></textarea>
+        <div class="hint">仅限轻享版评论聚宝链接；不调用微博 API。</div>
+
+        <button id="wbGenerate" class="main-btn">生成评论直达链接</button>
+        <div id="wbStatus" class="status"></div>
+
+        <div class="divider"><span></span></div>
+
+        <div id="wbResult" class="result weibo-result">
+          <div>
+            <h3 class="result-title">生成結果</h3>
+
+            <div class="item">
+              <div class="item-title">评论 ID（rid）</div>
+              <div id="wbRid" class="item-value"></div>
+            </div>
+
+            <div class="item">
+              <div class="item-title">评论直达链接</div>
+              <div id="wbFinalURL" class="item-value"></div>
+              <div class="actions">
+                <button id="wbCopyURL" class="small-btn">复制链接</button>
+                <button id="wbOpenURL" class="small-btn">开启链接</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div class="footer-main">@YKRJ</div>
+        <div class="footer-sub">仅限张真源粉丝使用！</div>
+        <div class="footer-en">All For ZZY</div>
+
+      </footer>
     </div>
-
-
-    <button
-      id="generate"
-      class="main-button"
-    >
-      解析並生成 QR
-    </button>
-
-
-    <div id="status"></div>
-
-
-    <div id="result">
-
-      <div>
-
-        <div class="item">
-
-          <div class="item-title">
-            原分享链接
-          </div>
-
-          <div
-            id="videoURL"
-            class="item-value"
-          ></div>
-
-        </div>
-
-
-        <div class="item">
-
-          <div class="item-title">
-            视频 ID
-          </div>
-
-          <div
-            id="videoID"
-            class="item-value"
-          ></div>
-
-        </div>
-
-
-        <div class="item">
-
-          <div class="item-title">
-            生成聚宝链接
-          </div>
-
-          <div
-            id="finalURL"
-            class="item-value"
-          ></div>
-
-
-          <div class="buttons">
-
-            <button
-              id="copyURL"
-              class="small-button"
-            >
-              复制链接
-            </button>
-
-
-            <button
-              id="openURL"
-              class="small-button"
-            >
-              开启链接
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="qr-area">
-
-        <div id="qrcode"></div>
-
-
-        <div class="buttons"
-             style="justify-content:center;">
-
-          <button
-            id="saveQR"
-            class="small-button"
-          >
-            保存 QR
-          </button>
-
-        </div>
-
-
-        <div class="qr-note">
-          QR Code 内容就是生成后的聚宝链接。
-        </div>
-
-      </div>
-
-    </div>
-
-    <!-- ===== 頁尾聲明標語 ===== -->
-    <div class="footer-warning">
-      仅供张真源粉丝专用！<br>
-    </div>
-
-  </div>
-
+  </main>
 </div>
 
-
-<script
-  src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js">
-</script>
-
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 
 <script>
+let currentDouyinQR = null;
 
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
 /*
 =========================================
 从整段分享文字抓出 Douyin 链接
@@ -626,7 +691,7 @@ async function resolveShortURL(url) {
 
 const generateButton =
   document.querySelector(
-    "#generate"
+    "#dyGenerate"
   );
 
 
@@ -638,7 +703,7 @@ generateButton
 
     const rawInput =
       document.querySelector(
-        "#input"
+        "#dyInput"
       )
       .value
       .trim();
@@ -646,7 +711,7 @@ generateButton
 
     const status =
       document.querySelector(
-        "#status"
+        "#dyStatus"
       );
 
 
@@ -669,7 +734,7 @@ generateButton
 
 
     document.querySelector(
-      "#result"
+      "#dyResult"
     )
     .classList
     .remove(
@@ -800,20 +865,20 @@ generateButton
       */
 
       document.querySelector(
-        "#videoURL"
+        "#dyVideoURL"
       ).textContent =
         videoURL ||
         "—";
 
 
       document.querySelector(
-        "#videoID"
+        "#dyVideoID"
       ).textContent =
         videoID;
 
 
       document.querySelector(
-        "#finalURL"
+        "#dyFinalURL"
       ).textContent =
         finalURL;
 
@@ -823,7 +888,7 @@ generateButton
       生成 QR
       */
 
-      const QRBox = document.querySelector("#qrcode");
+      const QRBox = document.querySelector("#dyQrcode");
 
 QRBox.innerHTML = "";
 
@@ -833,12 +898,16 @@ qr.addData(finalURL);
 
 qr.make();
 
-QRBox.innerHTML = qr.createImgTag(6, 4);
+/* 保存目前 QR，下載高清版時使用 */
+currentDouyinQR = qr;
+
+/* 預覽圖，畫面尺寸仍由 CSS 的 230px 控制 */
+QRBox.innerHTML = qr.createImgTag(8, 4);
 
 
 
       document.querySelector(
-        "#result"
+        "#dyResult"
       )
       .classList
       .add(
@@ -847,7 +916,7 @@ QRBox.innerHTML = qr.createImgTag(6, 4);
 
 
       status.textContent =
-        "完成 ✓";
+        "完成啦！✅";
 
     }
 
@@ -883,7 +952,7 @@ QRBox.innerHTML = qr.createImgTag(6, 4);
 */
 
 document.querySelector(
-  "#copyURL"
+  "#dyCopyURL"
 )
 .addEventListener(
   "click",
@@ -891,7 +960,7 @@ document.querySelector(
 
     const value =
       document.querySelector(
-        "#finalURL"
+        "#dyFinalURL"
       )
       .textContent;
 
@@ -911,7 +980,7 @@ document.querySelector(
 */
 
 document.querySelector(
-  "#openURL"
+  "#dyOpenURL"
 )
 .addEventListener(
   "click",
@@ -919,7 +988,7 @@ document.querySelector(
 
     const value =
       document.querySelector(
-        "#finalURL"
+        "#dyFinalURL"
       )
       .textContent;
 
@@ -944,7 +1013,7 @@ document.querySelector(
 =========================================
 */
 
-document.querySelector("#saveQR")
+document.querySelector("#dySaveQR")
 .addEventListener("click", async () => {
   const img = document.querySelector("#qrcode img");
   if (!img) return;
@@ -955,7 +1024,71 @@ document.querySelector("#saveQR")
   link.click();
 });
 
-</script>
+function extractWeiboRid(text){
+  const raw=String(text||"").trim();
+  if(!raw)return null;
 
+  try{
+    const u=new URL(raw);
+    const rid=u.searchParams.get("rid");
+    if(rid && /^\d{10,22}$/.test(rid))return rid;
+  }catch(e){}
+
+  let decoded=raw;
+  for(let i=0;i<2;i++){
+    try{decoded=decodeURIComponent(decoded)}
+    catch(e){break}
+  }
+
+  const m=decoded.match(/[?&]rid=(\d{10,22})(?:&|$)/i);
+  return m?m[1]:null;
+}
+
+function createWeiboCommentURL(rid){
+  const scheme=
+    "sinaweibo://detailbulletincomment?is_show_bulletin=3&comment_id="+
+    encodeURIComponent(rid);
+
+  return "https://weibo.cn/sinaurl?goto="+encodeURIComponent(scheme);
+}
+
+document.querySelector("#wbGenerate").addEventListener("click",()=>{
+  const raw=document.querySelector("#wbInput").value.trim();
+  const status=document.querySelector("#wbStatus");
+
+  status.classList.remove("error");
+  document.querySelector("#wbResult").classList.remove("show");
+
+  if(!raw){
+    status.textContent="要先貼上链接哦。";
+    return;
+  }
+
+  const rid=extractWeiboRid(raw);
+
+  if(!rid){
+    status.classList.add("error");
+    status.textContent="解析失敗：链接中沒有找到 rid。";
+    return;
+  }
+
+  const finalURL=createWeiboCommentURL(rid);
+
+  document.querySelector("#wbRid").textContent=rid;
+  document.querySelector("#wbFinalURL").textContent=finalURL;
+  document.querySelector("#wbResult").classList.add("show");
+  status.textContent="完成啦！✅";
+});
+
+document.querySelector("#wbCopyURL").addEventListener("click",async()=>{
+  const value=document.querySelector("#wbFinalURL").textContent;
+  if(value)await navigator.clipboard.writeText(value);
+});
+
+document.querySelector("#wbOpenURL").addEventListener("click",()=>{
+  const value=document.querySelector("#wbFinalURL").textContent;
+  if(value)window.open(value,"_blank");
+});
+</script>
 </body>
 </html>
