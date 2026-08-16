@@ -331,13 +331,13 @@ textarea:focus{
   color:#a9b8ae;
   font-family:"Noto Serif SC","Songti SC","STSong",serif;
   font-weight:600;
-  font-size:15px;
-  letter-spacing:1px;
+  font-size:12px;
+  letter-spacing:0px;
 }
 
 .footer-sub{
   margin-top:6px;
-  color:#737c77;
+  color:#3AD435;
   font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
   font-size:12px;
   font-weight:400;
@@ -347,13 +347,12 @@ textarea:focus{
 .footer-en{
   margin-top:6px;
   color:#737c77;
-  font-family:Georgia,"Times New Roman",serif;
+  font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
   font-size:12px;
-  font-style:italic;
   letter-spacing:1px;
 
   display:inline-block;
-  transform:skewX(-7deg);
+  transform:skewX(-5deg);
 }
 
 @media(max-width:720px){
@@ -418,7 +417,7 @@ textarea:focus{
     <div class="content">
       <section id="douyin" class="panel active">
         <h2 class="panel-title">抖印聚宝生成器</h2>
-        <div class="panel-desc">貼上抖音网页版的完整视频链接，解析视频 ID 並生成聚宝链接及二维码。</div>
+        <div class="panel-desc">貼上抖印网页版的完整视频链接，解析视频 ID 並生成聚宝链接及二维码。</div>
 
         <div class="section-label">输入完整抖印分享链接</div>
         <textarea id="dyInput" placeholder="需为用网页打开抖印视频链接后的完整网址进行解析
@@ -837,7 +836,7 @@ generateButton
       if (!videoURL && !videoID) {
 
         throw new Error(
-          "這段文字中沒有找到抖音網址。"
+          "這段文字中沒有找到抖印链接。"
         );
 
       }
