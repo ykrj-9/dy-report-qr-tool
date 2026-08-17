@@ -342,17 +342,23 @@ textarea:focus{
   font-size:12px;
   font-weight:400;
   letter-spacing:1px;
-}
-
-.footer-en{
-  margin-top:6px;
-  color:#737c77;
-  font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
-  font-size:12px;
-  letter-spacing:1px;
 
   display:inline-block;
   transform:skewX(-5deg);
+}
+
+.footer-en{
+  display:block;
+  margin-top:7px;
+
+  color:#9eaaa2;
+  font-family:Georgia, "Times New Roman", serif;
+  font-size:10px;
+  font-weight:400;
+  font-style:italic;
+  letter-spacing:0px;
+
+  transform:none;
 }
 
 @media(max-width:720px){
@@ -362,7 +368,7 @@ textarea:focus{
 
   .site-title{
     font-size:31px;
-    letter-spacing:2px;
+    letter-spacing:0px;
   }
 
   .tabs{
@@ -396,6 +402,20 @@ textarea:focus{
     min-height:220px;
   }
 }
+
+#dyInput{
+  font-size:14px;
+  color:#d5ded8;
+  font-weight:400;
+  line-height:1.65;
+}
+
+#dyInput::placeholder{
+  color:#59675f;
+  font-size:11px;
+  opacity:1;
+}
+
 </style>
 
 </head>
@@ -411,8 +431,7 @@ textarea:focus{
   <main class="toolbox">
     <div class="tabs">
       <button class="tab active" data-tab="douyin">🗑️抖印聚宝生成器</button>
-      <button class="tab" data-tab="weibo">🧹微博评论直达</button>
-    </div>
+      </div>
 
     <div class="content">
       <section id="douyin" class="panel active">
@@ -421,8 +440,8 @@ textarea:focus{
 
         <div class="section-label">输入完整抖印分享链接</div>
         <textarea id="dyInput" placeholder="需为用网页打开抖印视频链接后的完整网址进行解析
-（例1：https://www.iesdouyin.com/share/...）
-（例2：https://www.douyin.com/video/123xxx...)"></textarea>
+（例1：https://www.iesdouyin.com/sha...）
+（例2：https://www.douyin.com/video/xxx...)"></textarea>
         <div class="hint">支援网页版完整视频链接或视频 ID。</div>
 
         <button id="dyGenerate" class="main-btn">解析並生成QR Code！</button>
@@ -500,9 +519,8 @@ textarea:focus{
       </section>
 
       <footer class="footer">
-        <div class="footer-main">@YKRJ</div>
-        <div class="footer-sub">仅限张真源粉丝使用！</div>
-        <div class="footer-en">All For ZZY</div>
+      <div class="footer-sub">仅限张真源粉丝使用！</div>
+      <div class="footer-en">@YKRJ</div>
 
       </footer>
     </div>
@@ -897,12 +915,59 @@ qr.addData(finalURL);
 
 qr.make();
 
-/* 保存目前 QR，下載高清版時使用 */
+/* 保存目前 QR */
 currentDouyinQR = qr;
 
-/* 預覽圖，畫面尺寸仍由 CSS 的 230px 控制 */
-QRBox.innerHTML = qr.createImgTag(8, 4);
+/*
+  生成高清 QR 圖片
+  實際圖片約 1000 × 1000 px
+  畫面預覽仍由 CSS 控制在 230px 左右
+*/
+const moduleCount = qr.getModuleCount();
+const marginModules = 5;
 
+/* 算出接近 1000px 的整數格子尺寸，避免 QR 模糊 */
+const cellSize = Math.max(
+  1,
+  Math.floor(1000 / (moduleCount + marginModules * 2))
+);
+
+const canvasSize =
+  (moduleCount + marginModules * 2) * cellSize;
+
+const canvas = document.createElement("canvas");
+canvas.width = canvasSize;
+canvas.height = canvasSize;
+
+const ctx = canvas.getContext("2d");
+
+ctx.fillStyle = "#FFFFFF";
+ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+ctx.fillStyle = "#1B2620";
+
+for (let row = 0; row < moduleCount; row++) {
+  for (let col = 0; col < moduleCount; col++) {
+
+    if (qr.isDark(row, col)) {
+      ctx.fillRect(
+        (col + marginModules) * cellSize,
+        (row + marginModules) * cellSize,
+        cellSize,
+        cellSize
+      );
+    }
+
+  }
+}
+
+/* 轉成真正的高清 PNG 圖片 */
+const img = document.createElement("img");
+img.src = canvas.toDataURL("image/png");
+img.alt = "QR Code";
+
+QRBox.innerHTML = "";
+QRBox.appendChild(img);
 
 
       document.querySelector(
@@ -1013,14 +1078,25 @@ document.querySelector(
 */
 
 document.querySelector("#dySaveQR")
-.addEventListener("click", async () => {
-  const img = document.querySelector("#qrcode img");
-  if (!img) return;
+.addEventListener("click", () => {
+
+  const img = document.querySelector("#dyQrcode img");
+
+  if (!img) {
+    alert("請先生成 QR Code。");
+    return;
+  }
 
   const link = document.createElement("a");
+
   link.href = img.src;
-  link.download = "douyin-qr.png";
+  link.download =
+  "QR_" +
+  Math.random().toString(36).substring(2, 8) +
+  ".png";
+
   link.click();
+
 });
 
 function extractWeiboRid(text){
