@@ -1243,6 +1243,18 @@ function extractWeiboTarget(text){
       };
     }
 
+    /* 手机端单篇微博：/UID/数字rid */
+    const lastPart = parts.at(-1);
+    if (parts.length >= 2 && /^\d{10,22}$/.test(lastPart || "")) {
+      return {
+        kind: "post",
+        label: "单篇微博",
+        rid: lastPart,
+        shortID: "—",
+        reportType: "1"
+      };
+    }
+
     /* 单篇微博：/UID/短ID、/status/短ID 或 /detail/短ID */
     const statusIndex = parts.findIndex(x => x === "status" || x === "detail");
     const shortID = statusIndex >= 0 ? parts[statusIndex + 1] : parts.at(-1);
@@ -1274,6 +1286,20 @@ function extractWeiboTarget(text){
   const pathMatch = candidate.match(
     /(?:weibo\.com|weibo\.cn)\/(?:status\/|detail\/|\d+\/)([0-9A-Za-z]{5,16})/i
   );
+
+  const numericPostMatch = candidate.match(
+    /(?:weibo\.com|weibo\.cn)\/\d+\/(\d{10,22})(?:[/?#]|$)/i
+  );
+
+  if (numericPostMatch) {
+    return {
+      kind: "post",
+      label: "单篇微博",
+      rid: numericPostMatch[1],
+      shortID: "—",
+      reportType: "1"
+    };
+  }
 
   return pathMatch ? {
     kind: "post",
@@ -1474,7 +1500,7 @@ document.querySelector("#wbGenerate").addEventListener("click", () => {
   const target = extractWeiboTarget(raw);
   const shortID = target ? target.shortID : null;
   const rid = target
-    ? (target.kind === "profile" ? target.rid : weiboMidToRid(target.shortID))
+    ? (target.rid || weiboMidToRid(target.shortID))
     : null;
 
   if (!target || !rid) {
