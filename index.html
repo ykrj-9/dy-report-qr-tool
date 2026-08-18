@@ -317,7 +317,63 @@ textarea:focus{
 }
 
 .weibo-result{
-  grid-template-columns:1fr;
+  grid-template-columns:minmax(0,1fr) 250px;
+}
+
+.qr-mode-switch{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin:9px 0 14px;
+}
+
+.qr-mode-btn{
+  appearance:none;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:11px 12px;
+  color:var(--muted);
+  background:var(--field);
+  font:inherit;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.qr-mode-btn.active{
+  color:#fff;
+  border-color:var(--green);
+  background:var(--green);
+}
+
+.image-upload-wrap{
+  display:none;
+  margin-top:14px;
+}
+
+.image-upload-wrap.show{
+  display:block;
+}
+
+.image-upload{
+  width:100%;
+  padding:11px 12px;
+  color:var(--muted);
+  background:var(--field);
+  border:1px solid var(--line);
+  border-radius:10px;
+  font:inherit;
+  font-size:12px;
+}
+
+.image-upload::file-selector-button{
+  margin-right:10px;
+  padding:7px 10px;
+  border:0;
+  border-radius:7px;
+  color:#fff;
+  background:var(--green);
+  cursor:pointer;
 }
 
 .footer{
@@ -393,6 +449,10 @@ textarea:focus{
     display:block;
   }
 
+  .weibo-result.show{
+    display:block;
+  }
+
   .qr-side{
     margin-top:20px;
   }
@@ -403,14 +463,16 @@ textarea:focus{
   }
 }
 
-#dyInput{
+#dyInput,
+#wbInput{
   font-size:14px;
   color:#d5ded8;
   font-weight:400;
   line-height:1.65;
 }
 
-#dyInput::placeholder{
+#dyInput::placeholder,
+#wbInput::placeholder{
   color:#59675f;
   font-size:11px;
   opacity:1;
@@ -431,6 +493,7 @@ textarea:focus{
   <main class="toolbox">
     <div class="tabs">
       <button class="tab active" data-tab="douyin">🗑️抖印聚宝生成器</button>
+      <button class="tab" data-tab="weibo">🧹微博聚宝生成器(test)</button>
       </div>
 
     <div class="content">
@@ -485,14 +548,26 @@ textarea:focus{
       </section>
 
       <section id="weibo" class="panel">
-        <h2 class="panel-title">微博评论直达</h2>
-        <div class="panel-desc">貼上微博轻享版的评论聚宝链接，自动提取其中的rid，並生成相对应评论的直达链接。</div>
+        <h2 class="panel-title">微博聚宝生成器</h2>
+        <div class="panel-desc">貼上单篇微博或个人主页链接，生成对应的聚宝链接及二维码。</div>
 
-        <div class="section-label">输入微博聚宝评论链接</div>
-        <textarea id="wbInput" placeholder="https://service.account.weibo.com/reportspamobile?...&rid=xxxxxxxxx&type=2..."></textarea>
-        <div class="hint">仅限轻享版评论聚宝链接；不调用微博 API。</div>
+        <div class="section-label">输入微博链接</div>
+        <textarea id="wbInput" placeholder="单篇微博：https://weibo.com/123456789/xxxxxxx&#10;个人主页：https://weibo.com/u/123456789"></textarea>
+        <div class="hint">支援单篇微博和个人主页链接。</div>
 
-        <button id="wbGenerate" class="main-btn">生成评论直达链接</button>
+        <div class="section-label" style="margin-top:18px;">QR Code 样式</div>
+        <div class="qr-mode-switch">
+          <button type="button" class="qr-mode-btn active" data-qr-mode="plain">纯二维码</button>
+          <button type="button" class="qr-mode-btn" data-qr-mode="image">中间放图片</button>
+        </div>
+
+        <div id="wbImageUploadWrap" class="image-upload-wrap">
+          <div class="section-label">选择中央图片</div>
+          <input id="wbImageInput" class="image-upload" type="file" accept="image/*">
+          <div id="wbImageHint" class="hint">图片会自动裁切为正方形，并保留白色留边。</div>
+        </div>
+
+        <button id="wbGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="wbStatus" class="status"></div>
 
         <div class="divider"><span></span></div>
@@ -502,12 +577,22 @@ textarea:focus{
             <h3 class="result-title">生成結果</h3>
 
             <div class="item">
-              <div class="item-title">评论 ID（rid）</div>
+              <div class="item-title">辨识类型</div>
+              <div id="wbTargetType" class="item-value"></div>
+            </div>
+
+            <div class="item">
+              <div class="item-title">微博短 ID</div>
+              <div id="wbShortID" class="item-value"></div>
+            </div>
+
+            <div class="item">
+              <div class="item-title">微博数字 ID（rid）</div>
               <div id="wbRid" class="item-value"></div>
             </div>
 
             <div class="item">
-              <div class="item-title">评论直达链接</div>
+              <div class="item-title">生成聚宝链接</div>
               <div id="wbFinalURL" class="item-value"></div>
               <div class="actions">
                 <button id="wbCopyURL" class="small-btn">复制链接</button>
@@ -515,12 +600,20 @@ textarea:focus{
               </div>
             </div>
           </div>
+
+          <div class="qr-side">
+            <h3 class="result-title">二维码预览</h3>
+            <div id="wbQrcode" class="qr-frame"></div>
+            <div class="actions">
+              <button id="wbSaveQR" class="small-btn">保存 QR</button>
+            </div>
+            <div class="qr-caption">预览约 230px，长按或保存为约 1000px 高清 PNG。</div>
+          </div>
         </div>
       </section>
 
       <footer class="footer">
       <div class="footer-sub">仅限张真源粉丝使用！</div>
-      <div class="footer-en">@YKRJ</div>
 
       </footer>
     </div>
@@ -1099,60 +1192,310 @@ document.querySelector("#dySaveQR")
 
 });
 
-function extractWeiboRid(text){
-  const raw=String(text||"").trim();
-  if(!raw)return null;
+const WEIBO_BASE62 =
+  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+let currentWeiboMode = "plain";
+let currentWeiboImage = null;
+
+/*
+=========================================
+提取微博帖文链接中的短 ID
+=========================================
+*/
+function extractWeiboTarget(text){
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+
+  const urlMatch = raw.match(/https?:\/\/[^\s<>"'，。！？、]+/i);
+  const candidate = (urlMatch ? urlMatch[0] : raw)
+    .replace(/[)\]}>，。！？、]+$/, "");
 
   try{
-    const u=new URL(raw);
-    const rid=u.searchParams.get("rid");
-    if(rid && /^\d{10,22}$/.test(rid))return rid;
+    const url = new URL(candidate);
+    const host = url.hostname.toLowerCase();
+
+    if (!/(^|\.)weibo\.com$/.test(host) &&
+        !/(^|\.)weibo\.cn$/.test(host)) {
+      return null;
+    }
+
+    const parts = url.pathname.split("/").filter(Boolean);
+
+    /* 个人主页：/weibo.com/u/UID 或 /weibo.com/UID */
+    if (parts[0] === "u" && /^\d{5,20}$/.test(parts[1] || "")) {
+      return {
+        kind: "profile",
+        label: "个人主页",
+        rid: parts[1],
+        shortID: "—",
+        reportType: "3"
+      };
+    }
+
+    if (parts.length === 1 && /^\d{5,20}$/.test(parts[0])) {
+      return {
+        kind: "profile",
+        label: "个人主页",
+        rid: parts[0],
+        shortID: "—",
+        reportType: "3"
+      };
+    }
+
+    /* 单篇微博：/UID/短ID、/status/短ID 或 /detail/短ID */
+    const statusIndex = parts.findIndex(x => x === "status" || x === "detail");
+    const shortID = statusIndex >= 0 ? parts[statusIndex + 1] : parts.at(-1);
+
+    if (shortID && /^[0-9A-Za-z]{5,16}$/.test(shortID)) {
+      return {
+        kind: "post",
+        label: "单篇微博",
+        shortID,
+        reportType: "1"
+      };
+    }
   }catch(e){}
 
-  let decoded=raw;
-  for(let i=0;i<2;i++){
-    try{decoded=decodeURIComponent(decoded)}
-    catch(e){break}
+  const profileMatch = candidate.match(
+    /(?:weibo\.com|weibo\.cn)\/(?:u\/)?(\d{5,20})(?:[/?#]|$)/i
+  );
+
+  if (profileMatch && !/\/\d+\/[0-9A-Za-z]{5,16}/i.test(candidate)) {
+    return {
+      kind: "profile",
+      label: "个人主页",
+      rid: profileMatch[1],
+      shortID: "—",
+      reportType: "3"
+    };
   }
 
-  const m=decoded.match(/[?&]rid=(\d{10,22})(?:&|$)/i);
-  return m?m[1]:null;
+  const pathMatch = candidate.match(
+    /(?:weibo\.com|weibo\.cn)\/(?:status\/|detail\/|\d+\/)([0-9A-Za-z]{5,16})/i
+  );
+
+  return pathMatch ? {
+    kind: "post",
+    label: "单篇微博",
+    shortID: pathMatch[1],
+    reportType: "1"
+  } : null;
 }
 
-function createWeiboCommentURL(rid){
-  const scheme=
-    "sinaweibo://detailbulletincomment?is_show_bulletin=3&comment_id="+
-    encodeURIComponent(rid);
+/*
+=========================================
+微博 Base62 短 ID 转数字 rid
+=========================================
+*/
+function weiboMidToRid(mid){
+  let result = "";
 
-  return "https://weibo.cn/sinaurl?goto="+encodeURIComponent(scheme);
+  for (let end = mid.length; end > 0; end -= 4) {
+    const start = Math.max(0, end - 4);
+    const group = mid.slice(start, end);
+    let number = 0;
+
+    for (const char of group) {
+      const value = WEIBO_BASE62.indexOf(char);
+      if (value < 0) return null;
+      number = number * 62 + value;
+    }
+
+    let decimal = String(number);
+    if (start > 0) decimal = decimal.padStart(7, "0");
+    result = decimal + result;
+  }
+
+  return /^\d{10,22}$/.test(result) ? result : null;
 }
 
-document.querySelector("#wbGenerate").addEventListener("click",()=>{
-  const raw=document.querySelector("#wbInput").value.trim();
-  const status=document.querySelector("#wbStatus");
+function createWeiboReportURL(rid, reportType){
+  return "https://service.account.weibo.com/reportspamobile?rid=" +
+    encodeURIComponent(rid) +
+    "&type=" + encodeURIComponent(reportType);
+}
+
+/*
+=========================================
+读取中央图片
+=========================================
+*/
+function readImageFile(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("图片读取失败。"));
+      image.src = reader.result;
+    };
+
+    reader.onerror = () => reject(new Error("图片读取失败。"));
+    reader.readAsDataURL(file);
+  });
+}
+
+/*
+=========================================
+绘制约 1000px 高清 QR，可选中央图片
+=========================================
+*/
+function renderWeiboQR(content, centerImage){
+  const QRBox = document.querySelector("#wbQrcode");
+  QRBox.innerHTML = "";
+
+  const qr = qrcode(0, centerImage ? "H" : "M");
+  qr.addData(content);
+  qr.make();
+
+  const moduleCount = qr.getModuleCount();
+  const marginModules = 5;
+  const cellSize = Math.max(
+    1,
+    Math.floor(1000 / (moduleCount + marginModules * 2))
+  );
+  const canvasSize = (moduleCount + marginModules * 2) * cellSize;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvasSize;
+  canvas.height = canvasSize;
+
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvasSize, canvasSize);
+  ctx.fillStyle = "#1D211D";
+
+  for (let row = 0; row < moduleCount; row++) {
+    for (let col = 0; col < moduleCount; col++) {
+      if (qr.isDark(row, col)) {
+        ctx.fillRect(
+          (col + marginModules) * cellSize,
+          (row + marginModules) * cellSize,
+          cellSize,
+          cellSize
+        );
+      }
+    }
+  }
+
+  if (centerImage) {
+    const logoSize = Math.floor(canvasSize * 0.19);
+    const whitePadding = Math.max(cellSize, Math.floor(canvasSize * 0.012));
+    const whiteSize = logoSize + whitePadding * 2;
+    const whiteX = Math.floor((canvasSize - whiteSize) / 2);
+    const whiteY = Math.floor((canvasSize - whiteSize) / 2);
+    const logoX = whiteX + whitePadding;
+    const logoY = whiteY + whitePadding;
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(whiteX, whiteY, whiteSize, whiteSize);
+
+    const sourceSize = Math.min(centerImage.naturalWidth, centerImage.naturalHeight);
+    const sourceX = Math.floor((centerImage.naturalWidth - sourceSize) / 2);
+    const sourceY = Math.floor((centerImage.naturalHeight - sourceSize) / 2);
+
+    ctx.drawImage(
+      centerImage,
+      sourceX,
+      sourceY,
+      sourceSize,
+      sourceSize,
+      logoX,
+      logoY,
+      logoSize,
+      logoSize
+    );
+  }
+
+  const img = document.createElement("img");
+  img.src = canvas.toDataURL("image/png");
+  img.alt = "微博聚宝 QR Code";
+  QRBox.appendChild(img);
+}
+
+document.querySelectorAll("[data-qr-mode]").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("[data-qr-mode]")
+      .forEach(x => x.classList.remove("active"));
+
+    button.classList.add("active");
+    currentWeiboMode = button.dataset.qrMode;
+    document.querySelector("#wbImageUploadWrap")
+      .classList.toggle("show", currentWeiboMode === "image");
+    document.querySelector("#wbResult").classList.remove("show");
+    document.querySelector("#wbStatus").textContent = "";
+  });
+});
+
+document.querySelector("#wbImageInput").addEventListener("change", async event => {
+  const file = event.target.files && event.target.files[0];
+  const hint = document.querySelector("#wbImageHint");
+  currentWeiboImage = null;
+
+  if (!file) {
+    hint.textContent = "图片会自动裁切为正方形，并保留白色留边。";
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    event.target.value = "";
+    hint.textContent = "请选择图片文件。";
+    return;
+  }
+
+  try{
+    currentWeiboImage = await readImageFile(file);
+    hint.textContent = "已选择：" + file.name;
+  }catch(error){
+    event.target.value = "";
+    hint.textContent = error.message;
+  }
+});
+
+document.querySelector("#wbGenerate").addEventListener("click", () => {
+  const raw = document.querySelector("#wbInput").value.trim();
+  const status = document.querySelector("#wbStatus");
 
   status.classList.remove("error");
   document.querySelector("#wbResult").classList.remove("show");
 
-  if(!raw){
-    status.textContent="要先貼上链接哦。";
+  if (!raw) {
+    status.textContent = "要先貼上微博链接哦。";
     return;
   }
 
-  const rid=extractWeiboRid(raw);
-
-  if(!rid){
+  if (currentWeiboMode === "image" && !currentWeiboImage) {
     status.classList.add("error");
-    status.textContent="解析失敗：链接中沒有找到 rid。";
+    status.textContent = "请先选择要放在 QR 中间的图片。";
     return;
   }
 
-  const finalURL=createWeiboCommentURL(rid);
+  const target = extractWeiboTarget(raw);
+  const shortID = target ? target.shortID : null;
+  const rid = target
+    ? (target.kind === "profile" ? target.rid : weiboMidToRid(target.shortID))
+    : null;
 
-  document.querySelector("#wbRid").textContent=rid;
-  document.querySelector("#wbFinalURL").textContent=finalURL;
+  if (!target || !rid) {
+    status.classList.add("error");
+    status.textContent = "解析失败：没有辨识到正确的微博帖文或个人主页。";
+    return;
+  }
+
+  const finalURL = createWeiboReportURL(rid, target.reportType);
+
+  document.querySelector("#wbTargetType").textContent =
+    target.label + "（type=" + target.reportType + "）";
+  document.querySelector("#wbShortID").textContent = shortID;
+  document.querySelector("#wbRid").textContent = rid;
+  document.querySelector("#wbFinalURL").textContent = finalURL;
+  renderWeiboQR(
+    finalURL,
+    currentWeiboMode === "image" ? currentWeiboImage : null
+  );
   document.querySelector("#wbResult").classList.add("show");
-  status.textContent="完成啦！✅";
+  status.textContent = "完成啦！✅";
 });
 
 document.querySelector("#wbCopyURL").addEventListener("click",async()=>{
@@ -1163,6 +1506,23 @@ document.querySelector("#wbCopyURL").addEventListener("click",async()=>{
 document.querySelector("#wbOpenURL").addEventListener("click",()=>{
   const value=document.querySelector("#wbFinalURL").textContent;
   if(value)window.open(value,"_blank");
+});
+
+document.querySelector("#wbSaveQR").addEventListener("click", () => {
+  const img = document.querySelector("#wbQrcode img");
+
+  if (!img) {
+    alert("请先生成 QR Code。");
+    return;
+  }
+
+  const link = document.createElement("a");
+  link.href = img.src;
+  link.download =
+    "WEIBO_QR_" +
+    Math.random().toString(36).substring(2, 8) +
+    ".png";
+  link.click();
 });
 </script>
 </body>
