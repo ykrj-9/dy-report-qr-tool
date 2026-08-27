@@ -10,17 +10,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
 
 :root{
-  --bg:#0d1813;
-  --panel:#14231b;
-  --panel-2:#101d17;
-  --field:#0f1a15;
-  --line:#2d4738;
-  --green:#2f7a50;
-  --green-hover:#3b8d60;
-  --text:#eef3ef;
-  --muted:#91a097;
-  --soft:#6f7d75;
-  --danger:#ff9d9d;
+  --bg:#eef3ec;
+  --panel:#f7faf5;
+  --panel-2:#edf3ea;
+  --field:#f4f7f2;
+  --line:#c8d4c5;
+  --green:#8fa98c;
+  --green-hover:#7f9b7c;
+  --text:#344238;
+  --muted:#78877b;
+  --soft:#97a397;
+  --danger:#b96f6f;
 }
 
 *{box-sizing:border-box}
@@ -59,7 +59,7 @@ body{
   font-weight:700;
   letter-spacing:0px;
   line-height:1.2;
-  color:#f2f5f2;
+  color:#3c4b40;
 }
 
 .title-rule{
@@ -80,7 +80,7 @@ body{
   border:1px solid var(--line);
   border-radius:22px;
   background:var(--panel);
-  box-shadow:0 18px 45px rgba(0,0,0,.22);
+  box-shadow:0 14px 34px rgba(84,104,87,.10);
   overflow:hidden;
 }
 
@@ -93,7 +93,7 @@ body{
   display:flex;
   padding:0;
   border-bottom:1px solid var(--line);
-  background:#0f1c16;
+  background:#e8efe5;
 }
 
 .tab{
@@ -116,7 +116,7 @@ body{
 }
 
 .tab.active{
-  color:#fff;
+  color:#ffffff;
   background:var(--green);
 }
 
@@ -136,7 +136,7 @@ body{
   font-family:"Noto Serif SC","Songti SC","STSong",serif;
   font-size:28px;
   font-weight:700;
-  color:#f1f4f1;
+  color:#3c4b40;
 }
 
 .panel-desc{
@@ -150,7 +150,7 @@ body{
   margin-bottom:9px;
   font-size:14px;
   font-weight:600;
-  color:#dce4df;
+  color:#536358;
 }
 
 .section-label::before{
@@ -189,7 +189,7 @@ textarea:focus{
   height:48px;
   border:0;
   border-radius:11px;
-  color:#fff;
+  color:#ffffff;
   background:var(--green);
   font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
   font-size:15px;
@@ -241,7 +241,7 @@ textarea:focus{
   font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
   font-size:17px;
   font-weight:700;
-  color:#edf2ee;
+  color:#4a5a4f;
 }
 
 .item{
@@ -263,7 +263,7 @@ textarea:focus{
   font-size:13px;
   line-height:1.6;
   word-break:break-all;
-  color:#dfe7e1;
+  color:#4f5f54;
 }
 
 .actions{
@@ -275,8 +275,8 @@ textarea:focus{
 
 .small-btn{
   border:1px solid var(--line);
-  background:#193126;
-  color:#e4ebe6;
+  background:#dfe9dc;
+  color:#4e5d52;
   padding:8px 11px;
   border-radius:8px;
   cursor:pointer;
@@ -284,7 +284,7 @@ textarea:focus{
 }
 
 .small-btn:hover{
-  background:#203c2f;
+  background:#d5e2d2;
 }
 
 .qr-side{
@@ -371,7 +371,7 @@ textarea:focus{
   padding:7px 10px;
   border:0;
   border-radius:7px;
-  color:#fff;
+  color:#ffffff;
   background:var(--green);
   cursor:pointer;
 }
@@ -384,7 +384,7 @@ textarea:focus{
 }
 
 .footer-main{
-  color:#a9b8ae;
+  color:#839084;
   font-family:"Noto Serif SC","Songti SC","STSong",serif;
   font-weight:600;
   font-size:12px;
@@ -393,7 +393,7 @@ textarea:focus{
 
 .footer-sub{
   margin-top:6px;
-  color:#3AD435;
+  color:#6f8d6c;
   font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
   font-size:12px;
   font-weight:400;
@@ -407,7 +407,7 @@ textarea:focus{
   display:block;
   margin-top:7px;
 
-  color:#9eaaa2;
+  color:#8e9a8f;
   font-family:Georgia, "Times New Roman", serif;
   font-size:10px;
   font-weight:400;
@@ -466,31 +466,101 @@ textarea:focus{
 #dyInput,
 #wbInput{
   font-size:14px;
-  color:#d5ded8;
+  color:#4c5b50;
   font-weight:400;
   line-height:1.65;
 }
 
 #dyInput::placeholder,
 #wbInput::placeholder{
-  color:#59675f;
+  color:#a1aaa2;
   font-size:11px;
   opacity:1;
 }
 
 
-/* 抖音生成后只显示 QR 预览 */
+/* 抖音生成后：QR 在最前面，下面只保留生成网址 */
 #dyResult.show{
-  display:block;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:18px;
 }
-#dyResult > div:first-child{
-  display:none;
-}
+
 #dyResult .qr-side{
+  order:1;
   margin-top:0;
 }
+
+#dyResult > div:first-child{
+  order:2;
+  width:100%;
+}
+
+/* 隐藏「生成结果」标题、原分享链接、视频 ID，只留下生成聚宝链接 */
+#dyResult > div:first-child > .result-title,
+#dyResult > div:first-child > .item:nth-of-type(1),
+#dyResult > div:first-child > .item:nth-of-type(2){
+  display:none;
+}
+
+/* 生成网址区稍微收窄一点，更干净 */
+#dyResult > div:first-child > .item:nth-of-type(3){
+  max-width:680px;
+  margin:0 auto;
+}
+
+/* QR 下方不显示保存按钮，维持简洁 */
 #dyResult .qr-side .actions{
   display:none;
+}
+
+
+/* 微博生成后：QR 在最前面，结果信息排在下方 */
+#wbResult.show{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:18px;
+}
+
+#wbResult .qr-side{
+  order:1;
+  margin-top:0;
+}
+
+#wbResult > div:first-child{
+  order:2;
+  width:100%;
+}
+
+/* 微博只保留生成聚宝链接，其余识别信息隐藏 */
+#wbResult > div:first-child > .result-title,
+#wbResult > div:first-child > .item:nth-of-type(1),
+#wbResult > div:first-child > .item:nth-of-type(2),
+#wbResult > div:first-child > .item:nth-of-type(3){
+  display:none;
+}
+
+#wbResult > div:first-child > .item:nth-of-type(4){
+  max-width:680px;
+  margin:0 auto;
+}
+
+/* 让浅色主题下输入框和卡片更柔和 */
+.toolbox{
+  background:var(--panel);
+}
+
+textarea,
+.item-value,
+.qr-mode-btn,
+.image-upload{
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+
+.footer{
+  border-top:1px solid var(--line);
 }
 
 </style>
@@ -501,7 +571,7 @@ textarea:focus{
 <div class="page">
   <header class="hero">
     <div class="hero-mark">✦　✧　✦</div>
-    <h1 class="site-title">蘸豆小工具</h1>
+    <h1 class="site-title">蘸豆小工具 2.0</h1>
     <div class="title-rule"><span class="title-gem"></span></div>
   </header>
 
@@ -523,8 +593,6 @@ textarea:focus{
 
         <button id="dyGenerate" class="main-btn">解析並生成QR Code！</button>
         <div id="dyStatus" class="status"></div>
-
-        <div class="divider"><span></span></div>
 
         <div id="dyResult" class="result">
           <div>
@@ -584,8 +652,6 @@ textarea:focus{
         <button id="wbGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="wbStatus" class="status"></div>
 
-        <div class="divider"><span></span></div>
-
         <div id="wbResult" class="result weibo-result">
           <div>
             <h3 class="result-title">生成結果</h3>
@@ -628,6 +694,7 @@ textarea:focus{
 
       <footer class="footer">
       <div class="footer-sub">仅限张真源粉丝使用！</div>
+      <div class="footer-en">@YKRJ</div>
 
       </footer>
     </div>
