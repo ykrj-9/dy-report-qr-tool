@@ -571,7 +571,7 @@ textarea,
 <div class="page">
   <header class="hero">
     <div class="hero-mark">✦　✧　✦</div>
-    <h1 class="site-title">蘸豆小工具 2.0</h1>
+    <h1 class="site-title">蘸豆小工具</h1>
     <div class="title-rule"><span class="title-gem"></span></div>
   </header>
 
@@ -749,7 +749,7 @@ function parseDouyinShare(text) {
   */
   const videoMatch =
     url.pathname.match(
-      /\/(?:share\/)?video\/(\d{10,})/
+      /\/(?:share\/)?(?:video|note)\/(\d{10,})/
     );
 
   if (!videoMatch) {
