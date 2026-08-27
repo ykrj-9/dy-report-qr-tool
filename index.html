@@ -478,6 +478,21 @@ textarea:focus{
   opacity:1;
 }
 
+
+/* 抖音生成后只显示 QR 预览 */
+#dyResult.show{
+  display:block;
+}
+#dyResult > div:first-child{
+  display:none;
+}
+#dyResult .qr-side{
+  margin-top:0;
+}
+#dyResult .qr-side .actions{
+  display:none;
+}
+
 </style>
 
 </head>
@@ -493,19 +508,18 @@ textarea:focus{
   <main class="toolbox">
     <div class="tabs">
       <button class="tab active" data-tab="douyin">🗑️抖印聚宝生成器</button>
-      <button class="tab" data-tab="weibo">🧹微博聚宝生成器(test)</button>
+      <button class="tab" data-tab="weibo">🧹微博聚宝生成器</button>
       </div>
 
     <div class="content">
       <section id="douyin" class="panel active">
         <h2 class="panel-title">抖印聚宝生成器</h2>
-        <div class="panel-desc">貼上抖印网页版的完整视频链接，解析视频 ID 並生成聚宝链接及二维码。</div>
+        <div class="panel-desc">抖音 App 分享至vx >> 从vx直接点开 >> 等网页加载完成后即可获得链接 >> 再粘贴至此。</div>
 
-        <div class="section-label">输入完整抖印分享链接</div>
-        <textarea id="dyInput" placeholder="需为用网页打开抖印视频链接后的完整网址进行解析
-（例1：https://www.iesdouyin.com/sha...）
-（例2：https://www.douyin.com/video/xxx...)"></textarea>
-        <div class="hint">支援网页版完整视频链接或视频 ID。</div>
+        <div class="section-label">输入抖音 App 完整分享链接</div>
+        <textarea id="dyInput" placeholder="粘贴抖音 App「复制链接」得到的完整影片分享链接
+（例：https://www.iesdouyin.com/share/video/xxx?...&activity_info=...）"></textarea>
+        <div class="hint">需包含 activity_info；将从其中读取 social_author_id。</div>
 
         <button id="dyGenerate" class="main-btn">解析並生成QR Code！</button>
         <div id="dyStatus" class="status"></div>
@@ -635,162 +649,132 @@ document.querySelectorAll(".tab").forEach(btn=>{
 });
 /*
 =========================================
-从整段分享文字抓出 Douyin 链接
+抖音 App 分享链接解析
 =========================================
 */
 
-function extractDouyinURL(text) {
+const REPORT_BASE =
+  "https://aweme.snssdk.com/falcon/fe_douyin_security_react/mortise/9879902d-907f-46f3-85e0-678c416f366a";
 
-  const matches =
-    text.match(
-      /https?:\/\/[^\s<>"'，。！？、]+/gi
-    );
-
-
-  if (!matches) {
-    return null;
-  }
-
-
-  const cleaned =
-    matches.map(url =>
-      url.replace(
-        /[)\]}>，。！？、]+$/,
-        ""
-      )
-    );
-
-
-  /*
-  優先 v.douyin.com
-  */
-
-  let url =
-    cleaned.find(url =>
-      url.toLowerCase()
-         .includes(
-           "v.douyin.com"
-         )
-    );
-
-
-  if (url) {
-    return url;
-  }
-
-
-  /*
-  再找一般 douyin.com
-  */
-
-  url =
-    cleaned.find(url =>
-      url.toLowerCase()
-         .includes(
-           "douyin.com"
-         )
-    );
-
-
-  return url || null;
-
-}
-
-
-
-/*
-=========================================
-從內容直接找影片 ID
-=========================================
-*/
-
-function extractVideoID(text) {
-
-  const patterns = [
-
-    /\/video\/(\d{10,})/,
-
-    /[?&](?:object_id|modal_id|aweme_id|item_id|group_id)=(\d{10,})/,
-
-    /\b(\d{16,22})\b/
-
-  ];
-
-
-  for (const pattern of patterns) {
-
-    const match =
-      String(text)
-      .match(pattern);
-
-
-    if (match) {
-      return match[1];
-    }
-
-  }
-
-
-  return null;
-
-}
-
-
-
-/*
-=========================================
-生成最終 URL
-=========================================
-*/
-
-function createFinalURL(videoID) {
-
-  return (
-
-    "https://api.amemv.com/" +
-
-    "falcon/" +
-
-    "fe_douyin_security_react/" +
-
-    "mortise/" +
-
-    "9879902d-907f-46f3-85e0-678c416f366a/" +
-
-
-    "?report_type=video" +
-
-
-    "&object_id=" +
-    encodeURIComponent(videoID) +
-
-
-    "&enter_from=aweme_reflow" +
-
-
-    "&hide_nav_bar=1" +
-
-
-    "&should_full_screen=1"
-
+function extractShareUrl(text) {
+  const match = String(text).match(
+    /https?:\/\/[^\s<>"'，。！？、]+/
   );
 
+  if (!match) {
+    throw new Error("没有找到网址");
+  }
+
+  return match[0]
+    .replace(/[)\]}>，。！？、]+$/, "");
 }
 
 
+function parseDouyinShare(text) {
+  const shareUrl =
+    extractShareUrl(text);
 
-/*
-=========================================
-呼叫 Vercel API
-=========================================
-*/
+  const url =
+    new URL(shareUrl);
 
-async function resolveShortURL(url) {
-  throw new Error(
-    "GitHub Pages 單檔版無法直接解析 v.douyin.com 短網址。請貼完整 douyin.com/video/... 網址，或直接貼影片 ID。"
+  /*
+  影片 ID
+  */
+  const videoMatch =
+    url.pathname.match(
+      /\/(?:share\/)?video\/(\d{10,})/
+    );
+
+  if (!videoMatch) {
+    throw new Error(
+      "没有从链接中找到 video_id"
+    );
+  }
+
+  const videoId =
+    videoMatch[1];
+
+  /*
+  activity_info
+  */
+  const activityInfoRaw =
+    url.searchParams.get(
+      "activity_info"
+    );
+
+  if (!activityInfoRaw) {
+    throw new Error(
+      "链接中没有 activity_info，请使用抖音 App 的「复制链接」"
+    );
+  }
+
+  let activityInfo;
+
+  try {
+    activityInfo =
+      JSON.parse(
+        activityInfoRaw
+      );
+  }
+  catch {
+    throw new Error(
+      "activity_info 解析失败"
+    );
+  }
+
+  /*
+  作者数字 UID
+  */
+  const ownerId =
+    activityInfo?.social_author_id;
+
+  if (
+    !ownerId ||
+    !/^\d+$/.test(
+      String(ownerId)
+    )
+  ) {
+    throw new Error(
+      "链接中没有找到 social_author_id"
+    );
+  }
+
+  return {
+    shareUrl,
+    videoId:
+      String(videoId),
+    ownerId:
+      String(ownerId)
+  };
+}
+
+
+function createFinalURL(
+  videoId,
+  ownerId
+) {
+  const url =
+    new URL(
+      REPORT_BASE
+    );
+
+  url.searchParams.set(
+    "report_type",
+    "video"
   );
-}
 
+  url.searchParams.set(
+    "object_id",
+    videoId
+  );
+
+  url.searchParams.set(
+    "owner_id",
+    ownerId
+  );
+
+  return url.toString();
+}
 
 
 /*
@@ -804,12 +788,10 @@ const generateButton =
     "#dyGenerate"
   );
 
-
 generateButton
 .addEventListener(
   "click",
   async () => {
-
 
     const rawInput =
       document.querySelector(
@@ -818,30 +800,25 @@ generateButton
       .value
       .trim();
 
-
     const status =
       document.querySelector(
         "#dyStatus"
       );
 
+    status.classList.remove("error");
 
     if (!rawInput) {
-
+      status.classList.add("error");
       status.textContent =
-        "請先貼上內容。";
-
+        "请先贴上抖音 App 的完整分享链接。";
       return;
-
     }
-
 
     generateButton.disabled =
       true;
 
-
     status.textContent =
       "解析中…";
-
 
     document.querySelector(
       "#dyResult"
@@ -851,124 +828,18 @@ generateButton
       "show"
     );
 
-
     try {
 
-      let videoURL =
-        extractDouyinURL(
+      const parsed =
+        parseDouyinShare(
           rawInput
         );
 
-
-      let videoID = null;
-
-
-
-      /*
-      如果直接貼影片 ID
-      */
-
-      if (
-        /^\d{16,22}$/
-        .test(rawInput)
-      ) {
-
-        videoID =
-          rawInput;
-
-        videoURL =
-          "直接輸入影片 ID";
-
-      }
-
-
-
-      /*
-      如果網址本身已有 ID
-      */
-
-      if (
-        !videoID &&
-        videoURL
-      ) {
-
-        videoID =
-          extractVideoID(
-            videoURL
-          );
-
-      }
-
-
-
-      /*
-      如果是 v.douyin.com，
-      呼叫後端解析 redirect
-      */
-
-      if (
-        !videoID &&
-        videoURL &&
-        videoURL
-          .includes(
-            "v.douyin.com"
-          )
-      ) {
-
-        const result =
-          await resolveShortURL(
-            videoURL
-          );
-
-
-        videoID =
-          result.video_id;
-
-      }
-
-
-
-      /*
-      沒找到網址時，
-      再試試整段文字是不是含 ID
-      */
-
-      if (!videoID) {
-
-        videoID =
-          extractVideoID(
-            rawInput
-          );
-
-      }
-
-
-
-      if (!videoURL && !videoID) {
-
-        throw new Error(
-          "這段文字中沒有找到抖印链接。"
-        );
-
-      }
-
-
-      if (!videoID) {
-
-        throw new Error(
-          "沒有解析到影片 ID。"
-        );
-
-      }
-
-
-
       const finalURL =
         createFinalURL(
-          videoID
+          parsed.videoId,
+          parsed.ownerId
         );
-
-
 
       /*
       顯示資料
@@ -977,15 +848,15 @@ generateButton
       document.querySelector(
         "#dyVideoURL"
       ).textContent =
-        videoURL ||
-        "—";
-
+        parsed.shareUrl;
 
       document.querySelector(
         "#dyVideoID"
       ).textContent =
-        videoID;
-
+        parsed.videoId +
+        "（owner_id：" +
+        parsed.ownerId +
+        "）";
 
       document.querySelector(
         "#dyFinalURL"
@@ -993,75 +864,145 @@ generateButton
         finalURL;
 
 
-
       /*
       生成 QR
       */
 
-      const QRBox = document.querySelector("#dyQrcode");
+      const QRBox =
+        document.querySelector(
+          "#dyQrcode"
+        );
 
-QRBox.innerHTML = "";
+      QRBox.innerHTML = "";
 
-const qr = qrcode(0, "M");
+      const qr =
+        qrcode(
+          0,
+          "M"
+        );
 
-qr.addData(finalURL);
-
-qr.make();
-
-/* 保存目前 QR */
-currentDouyinQR = qr;
-
-/*
-  生成高清 QR 圖片
-  實際圖片約 1000 × 1000 px
-  畫面預覽仍由 CSS 控制在 230px 左右
-*/
-const moduleCount = qr.getModuleCount();
-const marginModules = 5;
-
-/* 算出接近 1000px 的整數格子尺寸，避免 QR 模糊 */
-const cellSize = Math.max(
-  1,
-  Math.floor(1000 / (moduleCount + marginModules * 2))
-);
-
-const canvasSize =
-  (moduleCount + marginModules * 2) * cellSize;
-
-const canvas = document.createElement("canvas");
-canvas.width = canvasSize;
-canvas.height = canvasSize;
-
-const ctx = canvas.getContext("2d");
-
-ctx.fillStyle = "#FFFFFF";
-ctx.fillRect(0, 0, canvasSize, canvasSize);
-
-ctx.fillStyle = "#1B2620";
-
-for (let row = 0; row < moduleCount; row++) {
-  for (let col = 0; col < moduleCount; col++) {
-
-    if (qr.isDark(row, col)) {
-      ctx.fillRect(
-        (col + marginModules) * cellSize,
-        (row + marginModules) * cellSize,
-        cellSize,
-        cellSize
+      qr.addData(
+        finalURL
       );
-    }
 
-  }
-}
+      qr.make();
 
-/* 轉成真正的高清 PNG 圖片 */
-const img = document.createElement("img");
-img.src = canvas.toDataURL("image/png");
-img.alt = "QR Code";
+      currentDouyinQR =
+        qr;
 
-QRBox.innerHTML = "";
-QRBox.appendChild(img);
+      /*
+      生成高清 QR 圖片
+      實際圖片約 1000 × 1000 px
+      畫面預覽仍由 CSS 控制在 230px 左右
+      */
 
+      const moduleCount =
+        qr.getModuleCount();
+
+      const marginModules =
+        5;
+
+      const cellSize =
+        Math.max(
+          1,
+          Math.floor(
+            1000 /
+            (
+              moduleCount +
+              marginModules * 2
+            )
+          )
+        );
+
+      const canvasSize =
+        (
+          moduleCount +
+          marginModules * 2
+        ) *
+        cellSize;
+
+      const canvas =
+        document.createElement(
+          "canvas"
+        );
+
+      canvas.width =
+        canvasSize;
+
+      canvas.height =
+        canvasSize;
+
+      const ctx =
+        canvas.getContext(
+          "2d"
+        );
+
+      ctx.fillStyle =
+        "#FFFFFF";
+
+      ctx.fillRect(
+        0,
+        0,
+        canvasSize,
+        canvasSize
+      );
+
+      ctx.fillStyle =
+        "#1B2620";
+
+      for (
+        let row = 0;
+        row < moduleCount;
+        row++
+      ) {
+        for (
+          let col = 0;
+          col < moduleCount;
+          col++
+        ) {
+          if (
+            qr.isDark(
+              row,
+              col
+            )
+          ) {
+            ctx.fillRect(
+              (
+                col +
+                marginModules
+              ) *
+              cellSize,
+              (
+                row +
+                marginModules
+              ) *
+              cellSize,
+              cellSize,
+              cellSize
+            );
+          }
+        }
+      }
+
+      const img =
+        document.createElement(
+          "img"
+        );
+
+      img.src =
+        canvas.toDataURL(
+          "image/png"
+        );
+
+      img.alt =
+        "QR Code";
+
+      QRBox.innerHTML =
+        "";
+
+      QRBox.appendChild(
+        img
+      );
 
       document.querySelector(
         "#dyResult"
@@ -1071,32 +1012,29 @@ QRBox.appendChild(img);
         "show"
       );
 
-
       status.textContent =
         "完成啦！✅";
-
     }
-
 
     catch (error) {
 
-      console.error(error);
+      console.error(
+        error
+      );
 
+      status.classList.add(
+        "error"
+      );
 
       status.textContent =
-        "解析失敗：" +
+        "解析失败：" +
         error.message;
-
     }
-
 
     finally {
-
       generateButton.disabled =
         false;
-
     }
-
   }
 );
 
