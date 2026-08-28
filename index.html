@@ -429,7 +429,7 @@ textarea:focus{
 
   .tabs{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:repeat(3,1fr);
   }
 
   .tab{
@@ -464,7 +464,8 @@ textarea:focus{
 }
 
 #dyInput,
-#wbInput{
+#wbInput,
+#biliInput{
   font-size:14px;
   color:#4c5b50;
   font-weight:400;
@@ -472,7 +473,8 @@ textarea:focus{
 }
 
 #dyInput::placeholder,
-#wbInput::placeholder{
+#wbInput::placeholder,
+#biliInput::placeholder{
   color:#a1aaa2;
   font-size:11px;
   opacity:1;
@@ -563,6 +565,22 @@ textarea,
   border-top:1px solid var(--line);
 }
 
+
+/* Bilibili：生成后 QR 在前 */
+#biliResult.show{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:18px;
+}
+#biliResult .qr-side{order:1;margin-top:0}
+#biliResult > div:first-child{order:2;width:100%}
+#biliResult > div:first-child > .result-title,
+#biliResult > div:first-child > .item:nth-of-type(1),
+#biliResult > div:first-child > .item:nth-of-type(2){display:none}
+#biliResult > div:first-child > .item:nth-of-type(3){max-width:680px;margin:0 auto}
+#biliResult .qr-side .actions{display:none}
+
 </style>
 
 </head>
@@ -577,8 +595,9 @@ textarea,
 
   <main class="toolbox">
     <div class="tabs">
-      <button class="tab active" data-tab="douyin">🗑️抖印聚宝生成器</button>
-      <button class="tab" data-tab="weibo">🧹微博聚宝生成器</button>
+      <button class="tab active" data-tab="douyin">🗑️抖印视频聚宝</button>
+      <button class="tab" data-tab="weibo">🧹微博全能聚宝</button>
+      <button class="tab" data-tab="bilibili">📺B站视频聚宝(test)</button>
       </div>
 
     <div class="content">
@@ -680,6 +699,35 @@ textarea,
               <button id="wbSaveQR" class="small-btn">保存 QR</button>
             </div>
             <div class="qr-caption">预览约 230px，长按或保存为约 1000px 高清 PNG。</div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="bilibili" class="panel">
+        <h2 class="panel-title">B站聚宝生成器</h2>
+        <div class="panel-desc">贴上 Bilibili 影片链接或直接输入 BV 号，生成对应的聚宝链接及二维码。</div>
+
+        <div class="section-label">输入 Bilibili 分享链接</div>
+        <textarea id="biliInput" placeholder="例如：https://m.bilibili.com/video/BV1Lc8F6qEEv&#10;也可以直接贴：BV1Lc8F6qEEv"></textarea>
+        <div class="hint">支持 BV 号、www.bilibili.com/video/BV... 及 m.bilibili.com/video/BV... 链接。</div>
+
+        <button id="biliGenerate" class="main-btn">生成聚宝 QR Code！</button>
+        <div id="biliStatus" class="status"></div>
+
+        <div id="biliResult" class="result">
+          <div>
+            <h3 class="result-title">生成结果</h3>
+            <div class="item"><div class="item-title">BV / AV</div><div id="biliIDs" class="item-value"></div></div>
+            <div class="item"><div class="item-title">展开后链接</div><div id="biliResolvedURL" class="item-value"></div></div>
+            <div class="item"><div class="item-title">生成聚宝链接</div><div id="biliFinalURL" class="item-value"></div></div>
+          </div>
+
+          <div class="qr-side">
+            <h3 class="result-title">二维码预览</h3>
+            <div id="biliQrcode" class="qr-frame"></div>
+            <div class="actions"><button id="biliSaveQR" class="small-btn">保存 QR</button></div>
+            <div class="qr-caption">长按即可保存约 1000px 高清 PNG。</div>
           </div>
         </div>
       </section>
@@ -1547,6 +1595,144 @@ document.querySelector("#wbSaveQR").addEventListener("click", () => {
     ".png";
   link.click();
 });
+
+
+/* =========================================
+   Bilibili 测试版 V3
+   纯前端 BV → aid，不请求 Bilibili API
+   ========================================= */
+const BILI_TABLE =
+  "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf";
+const BILI_XOR = 23442827791579n;
+const BILI_MASK = 2251799813685247n;
+const BILI_BASE = 58n;
+
+function extractBVID(text){
+  const m = String(text || "").match(/BV1[0-9A-Za-z]{9}/i);
+  return m ? ("BV1" + m[0].slice(3)) : null;
+}
+
+function bvToAid(bvid){
+  if(!/^BV1[0-9A-Za-z]{9}$/.test(bvid)){
+    throw new Error("BV 号格式不正确");
+  }
+
+  const chars = Array.from(bvid);
+  [chars[3], chars[9]] = [chars[9], chars[3]];
+  [chars[4], chars[7]] = [chars[7], chars[4]];
+  chars.splice(0, 3);
+
+  let value = 0n;
+  for(const char of chars){
+    const index = BILI_TABLE.indexOf(char);
+    if(index < 0){
+      throw new Error("BV 号中出现无法识别的字符");
+    }
+    value = value * BILI_BASE + BigInt(index);
+  }
+
+  return (((value & BILI_MASK) ^ BILI_XOR)).toString();
+}
+
+function renderBiliQR(content){
+  const box = document.querySelector("#biliQrcode");
+  box.innerHTML = "";
+
+  const qr = qrcode(0, "M");
+  qr.addData(content);
+  qr.make();
+
+  const moduleCount = qr.getModuleCount();
+  const marginModules = 5;
+  const cellSize = Math.max(1, Math.floor(1000 / (moduleCount + marginModules * 2)));
+  const canvasSize = (moduleCount + marginModules * 2) * cellSize;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = canvasSize;
+  canvas.height = canvasSize;
+
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvasSize, canvasSize);
+  ctx.fillStyle = "#1B2620";
+
+  for(let row = 0; row < moduleCount; row++){
+    for(let col = 0; col < moduleCount; col++){
+      if(qr.isDark(row, col)){
+        ctx.fillRect(
+          (col + marginModules) * cellSize,
+          (row + marginModules) * cellSize,
+          cellSize,
+          cellSize
+        );
+      }
+    }
+  }
+
+  const img = document.createElement("img");
+  img.src = canvas.toDataURL("image/png");
+  img.alt = "Bilibili QR Code";
+  box.appendChild(img);
+}
+
+document.querySelector("#biliGenerate")?.addEventListener("click", () => {
+  const btn = document.querySelector("#biliGenerate");
+  const status = document.querySelector("#biliStatus");
+  const raw = document.querySelector("#biliInput").value.trim();
+
+  status.classList.remove("error");
+  document.querySelector("#biliResult").classList.remove("show");
+
+  if(!raw){
+    status.classList.add("error");
+    status.textContent = "请先贴上 Bilibili 视频链接。";
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = "解析中…";
+
+  try{
+    const bvid = extractBVID(raw);
+
+    if(!bvid){
+      if(/https?:\/\/b23\.tv\//i.test(raw)){
+        throw new Error("暂不支持直接解析 b23.tv 短链；请直接贴 BV 号，或贴含 BV 号的 Bilibili 影片链接。");
+      }
+      throw new Error("没有找到 BV 号，请贴完整的 Bilibili 视频链接或直接贴 BV 号。");
+    }
+
+    const aid = bvToAid(bvid);
+    const finalURL = "https://www.bilibili.com/appeal?avid=" + encodeURIComponent(aid);
+
+    document.querySelector("#biliIDs").textContent = bvid + " / av" + aid;
+    document.querySelector("#biliResolvedURL").textContent = "纯前端转换（未请求 B站 API）";
+    document.querySelector("#biliFinalURL").textContent = finalURL;
+
+    renderBiliQR(finalURL);
+    document.querySelector("#biliResult").classList.add("show");
+    status.textContent = "完成啦！✅";
+  }catch(e){
+    console.error(e);
+    status.classList.add("error");
+    status.textContent = "解析失败：" + e.message;
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+document.querySelector("#biliSaveQR")?.addEventListener("click", () => {
+  const img = document.querySelector("#biliQrcode img");
+  if(!img){
+    alert("请先生成 QR Code。");
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = img.src;
+  a.download = "BILI_QR_" + Math.random().toString(36).substring(2, 8) + ".png";
+  a.click();
+});
+
 </script>
 </body>
 </html>
