@@ -595,9 +595,9 @@ textarea,
 
   <main class="toolbox">
     <div class="tabs">
-      <button class="tab active" data-tab="douyin">🗑️抖印视频聚宝</button>
-      <button class="tab" data-tab="weibo">🧹微博全能聚宝</button>
-      <button class="tab" data-tab="bilibili">📺比站视频聚宝(test)</button>
+      <button class="tab active" data-tab="douyin">🗑️抖印聚宝生成器</button>
+      <button class="tab" data-tab="weibo">🧹微博聚宝生成器</button>
+      <button class="tab" data-tab="bilibili">📺B站聚宝生成器</button>
       </div>
 
     <div class="content">
@@ -646,11 +646,11 @@ textarea,
 
       <section id="weibo" class="panel">
         <h2 class="panel-title">微博聚宝生成器</h2>
-        <div class="panel-desc">貼上微博帖子或个人主页链接，生成对应的聚宝链接及二维码。</div>
+        <div class="panel-desc">貼上单篇微博或个人主页链接，生成对应的聚宝链接及二维码。</div>
 
         <div class="section-label">输入微博链接</div>
         <textarea id="wbInput" placeholder="单篇微博：https://weibo.com/123456789/xxxxxxx&#10;个人主页：https://weibo.com/u/123456789"></textarea>
-        <div class="hint">支援个人微博和个人主页链接。</div>
+        <div class="hint">支援单篇微博和个人主页链接。</div>
 
         <div class="section-label" style="margin-top:18px;">QR Code 样式</div>
         <div class="qr-mode-switch">
@@ -705,12 +705,12 @@ textarea,
 
 
       <section id="bilibili" class="panel">
-        <h2 class="panel-title">比站视频聚宝(test)</h2>
-        <div class="panel-desc">直接输入 BV 号或贴上 Bilibili 视频链接，生成对应的聚宝链接及二维码。</div>
+        <h2 class="panel-title">B站聚宝生成器</h2>
+        <div class="panel-desc">贴上比站的  BV 号或个人主页链接，自动识别并生成对应的聚宝链接及二维码。</div>
 
-        <div class="section-label">输入 Bilibili 分享链接</div>
-        <textarea id="biliInput" placeholder="例如：https://m.bilibili.com/video/BV1Lc8F6qEEv&#10;也可以直接贴：BV1Lc8F6qEEv"></textarea>
-        <div class="hint">支持 BV 号、bilibili.com/video/BV... 链接。</div>
+        <div class="section-label">输入 Bilibili 视频 / 个人主页</div>
+        <textarea id="biliInput" placeholder="BV号：BV123456ZZy&#10;个人主页：https://m.bilibili.com/space/123456789"></textarea>
+        <div class="hint">支持 BV 号、Bilibili 视频链接及 /space/UID 个人主页链接；会自动判断类型。</div>
 
         <button id="biliGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="biliStatus" class="status"></div>
@@ -727,7 +727,7 @@ textarea,
             <h3 class="result-title">二维码预览</h3>
             <div id="biliQrcode" class="qr-frame"></div>
             <div class="actions"><button id="biliSaveQR" class="small-btn">保存 QR</button></div>
-            <div class="qr-caption">长按即可保存qr图片。</div>
+            <div class="qr-caption">长按即可保存约 1000px 高清 PNG。</div>
           </div>
         </div>
       </section>
@@ -802,14 +802,6 @@ function parseDouyinShare(text) {
     videoMatch[1];
 
   /*
-  作品类型：影片 / 图文
-  */
-  const contentType =
-    /\/note\//.test(url.pathname)
-      ? "images"
-      : "video";
-
-  /*
   activity_info
   */
   const activityInfoRaw =
@@ -859,16 +851,14 @@ function parseDouyinShare(text) {
     videoId:
       String(videoId),
     ownerId:
-      String(ownerId),
-    contentType
+      String(ownerId)
   };
 }
 
 
 function createFinalURL(
   videoId,
-  ownerId,
-  contentType
+  ownerId
 ) {
   const url =
     new URL(
@@ -877,7 +867,7 @@ function createFinalURL(
 
   url.searchParams.set(
     "report_type",
-    contentType
+    "video"
   );
 
   url.searchParams.set(
@@ -955,8 +945,7 @@ generateButton
       const finalURL =
         createFinalURL(
           parsed.videoId,
-          parsed.ownerId,
-          parsed.contentType
+          parsed.ownerId
         );
 
       /*
@@ -1609,8 +1598,8 @@ document.querySelector("#wbSaveQR").addEventListener("click", () => {
 
 
 /* =========================================
-   Bilibili 测试版 V3
-   纯前端 BV → aid，不请求 Bilibili API
+   Bilibili 正式版
+   影片：纯前端 BV → aid；个人主页：space/UID → targetmid
    ========================================= */
 const BILI_TABLE =
   "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf";
@@ -1621,6 +1610,11 @@ const BILI_BASE = 58n;
 function extractBVID(text){
   const m = String(text || "").match(/BV1[0-9A-Za-z]{9}/i);
   return m ? ("BV1" + m[0].slice(3)) : null;
+}
+
+function extractBiliUID(text){
+  const m = String(text || "").match(/(?:https?:\/\/)?(?:m\.|www\.)?bilibili\.com\/space\/(\d+)/i);
+  return m ? m[1] : null;
 }
 
 function bvToAid(bvid){
@@ -1696,7 +1690,7 @@ document.querySelector("#biliGenerate")?.addEventListener("click", () => {
 
   if(!raw){
     status.classList.add("error");
-    status.textContent = "请先贴上 Bilibili 视频链接。";
+    status.textContent = "请先贴上 Bilibili 影片、BV 号或个人主页链接。";
     return;
   }
 
@@ -1704,20 +1698,28 @@ document.querySelector("#biliGenerate")?.addEventListener("click", () => {
   status.textContent = "解析中…";
 
   try{
+    const uid = extractBiliUID(raw);
     const bvid = extractBVID(raw);
+    let finalURL = "";
 
-    if(!bvid){
+    if(uid){
+      finalURL = "https://account.bilibili.com/h5/account-h5/gr/report?navhide=1&targetmid="
+        + encodeURIComponent(uid)
+        + "&native.theme=1&night=0";
+      document.querySelector("#biliIDs").textContent = "UID " + uid;
+      document.querySelector("#biliResolvedURL").textContent = "个人主页举报";
+    }else if(bvid){
+      const aid = bvToAid(bvid);
+      finalURL = "https://www.bilibili.com/appeal?avid=" + encodeURIComponent(aid);
+      document.querySelector("#biliIDs").textContent = bvid + " / av" + aid;
+      document.querySelector("#biliResolvedURL").textContent = "影片举报（纯前端转换）";
+    }else{
       if(/https?:\/\/b23\.tv\//i.test(raw)){
-        throw new Error("暂不支持直接解析 b23.tv 短链；请直接贴 BV 号，或贴含 BV 号的 Bilibili 视频链接。");
+        throw new Error("暂不支持直接解析 b23.tv 短链；请贴 BV 号、含 BV 号的影片链接，或个人主页链接。");
       }
-      throw new Error("没有找到 BV 号，请贴完整的 Bilibili 视频链接或直接贴 BV 号。");
+      throw new Error("没有识别到 BV 号或 /space/UID，请检查贴上的 Bilibili 链接。");
     }
 
-    const aid = bvToAid(bvid);
-    const finalURL = "https://www.bilibili.com/appeal?avid=" + encodeURIComponent(aid);
-
-    document.querySelector("#biliIDs").textContent = bvid + " / av" + aid;
-    document.querySelector("#biliResolvedURL").textContent = "纯前端转换（未请求 B站 API）";
     document.querySelector("#biliFinalURL").textContent = finalURL;
 
     renderBiliQR(finalURL);
