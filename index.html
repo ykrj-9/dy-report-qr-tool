@@ -1108,7 +1108,7 @@ generateButton
 document.querySelector(
   "#dyCopyURL"
 )
-.addEventListener(
+?.addEventListener(
   "click",
   async () => {
 
@@ -1136,7 +1136,7 @@ document.querySelector(
 document.querySelector(
   "#dyOpenURL"
 )
-.addEventListener(
+?.addEventListener(
   "click",
   () => {
 
@@ -1521,12 +1521,12 @@ document.querySelector("#wbGenerate").addEventListener("click", () => {
   status.textContent = "完成啦！✅";
 });
 
-document.querySelector("#wbCopyURL").addEventListener("click",async()=>{
+document.querySelector("#wbCopyURL")?.addEventListener("click",async()=>{
   const value=document.querySelector("#wbFinalURL").textContent;
   if(value)await navigator.clipboard.writeText(value);
 });
 
-document.querySelector("#wbOpenURL").addEventListener("click",()=>{
+document.querySelector("#wbOpenURL")?.addEventListener("click",()=>{
   const value=document.querySelector("#wbFinalURL").textContent;
   if(value)window.open(value,"_blank");
 });
