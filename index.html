@@ -802,6 +802,14 @@ function parseDouyinShare(text) {
     videoMatch[1];
 
   /*
+  作品类型：影片 / 图文
+  */
+  const contentType =
+    /\/note\//.test(url.pathname)
+      ? "images"
+      : "video";
+
+  /*
   activity_info
   */
   const activityInfoRaw =
@@ -851,14 +859,16 @@ function parseDouyinShare(text) {
     videoId:
       String(videoId),
     ownerId:
-      String(ownerId)
+      String(ownerId),
+    contentType
   };
 }
 
 
 function createFinalURL(
   videoId,
-  ownerId
+  ownerId,
+  contentType
 ) {
   const url =
     new URL(
@@ -867,7 +877,7 @@ function createFinalURL(
 
   url.searchParams.set(
     "report_type",
-    "video"
+    contentType
   );
 
   url.searchParams.set(
@@ -945,7 +955,8 @@ generateButton
       const finalURL =
         createFinalURL(
           parsed.videoId,
-          parsed.ownerId
+          parsed.ownerId,
+          parsed.contentType
         );
 
       /*
@@ -1697,7 +1708,7 @@ document.querySelector("#biliGenerate")?.addEventListener("click", () => {
 
     if(!bvid){
       if(/https?:\/\/b23\.tv\//i.test(raw)){
-        throw new Error("暂不支持直接解析 b23.tv 短链；请直接贴 BV 号，或贴含 BV 号的 Bilibili 影片链接。");
+        throw new Error("暂不支持直接解析 b23.tv 短链；请直接贴 BV 号，或贴含 BV 号的 Bilibili 视频链接。");
       }
       throw new Error("没有找到 BV 号，请贴完整的 Bilibili 视频链接或直接贴 BV 号。");
     }
