@@ -301,6 +301,7 @@ textarea:focus{
   display:flex;
   align-items:center;
   justify-content:center;
+  flex-direction:column;
   background:#fff;
   border-radius:12px;
 }
@@ -464,6 +465,7 @@ textarea:focus{
 }
 
 #dyInput,
+#dyAuthorInput,
 #wbInput,
 #biliInput{
   font-size:14px;
@@ -473,6 +475,7 @@ textarea:focus{
 }
 
 #dyInput::placeholder,
+#dyAuthorInput::placeholder,
 #wbInput::placeholder,
 #biliInput::placeholder{
   color:#a1aaa2;
@@ -589,7 +592,7 @@ textarea,
 <div class="page">
   <header class="hero">
     <div class="hero-mark">✦　✧　✦</div>
-    <h1 class="site-title">蘸豆小工具2.0</h1>
+    <h1 class="site-title">蘸豆小工具2.5</h1>
     <div class="title-rule"><span class="title-gem"></span></div>
   </header>
 
@@ -603,12 +606,17 @@ textarea,
     <div class="content">
       <section id="douyin" class="panel active">
         <h2 class="panel-title">抖印聚宝生成器</h2>
-        <div class="panel-desc">抖音 App 复制链接至vx对话框 >> 从vx直接点开 >> 等网页加载完成后即可获得链接 >> 蘸豆蘸豆！</div>
+        <div class="panel-desc">需贴上作品完整分享链接＋该作品作者个人主页分享链接，生成聚宝 QR。</div>
 
-        <div class="section-label">输入抖音 App 完整分享链接</div>
-        <textarea id="dyInput" placeholder="粘贴抖音 App「复制链接」得到的完整影片分享链接
-（https://www.iesdouyin.com/share/xxx?...）"></textarea>
-        <div class="hint">需包含 activity_info；将从其中读取 social_author_id。</div>
+        <div class="section-label">输入作品完整分享链接</div>
+        <textarea id="dyInput" placeholder="粘贴抖音 App「复制链接」得到的完整作品分享链接
+（https://www.iesdouyin.com/share/video/... 或 /share/note/...）"></textarea>
+        <div class="hint">支持视频 /video/ 与图文 /note/，会自动判断类型。</div>
+
+        <div class="section-label" style="margin-top:18px;">输入该作品作者的个人主页分享链接</div>
+        <textarea id="dyAuthorInput" placeholder="粘贴作者个人主页「复制链接」得到的完整链接
+（https://www.iesdouyin.com/share/user/MS4w...?...&sec_uid=MS4w...）"></textarea>
+        <div class="hint">需要作品链接＋作者主页链接。</div>
 
         <button id="dyGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="dyStatus" class="status"></div>
@@ -778,109 +786,73 @@ function extractShareUrl(text) {
 
 
 function parseDouyinShare(text) {
-  const shareUrl =
-    extractShareUrl(text);
+  const shareUrl = extractShareUrl(text);
+  const url = new URL(shareUrl);
 
-  const url =
-    new URL(shareUrl);
+  const workMatch = url.pathname.match(
+    /\/(?:share\/)?(video|note)\/(\d{10,})/
+  );
 
-  /*
-  影片 ID
-  */
-  const videoMatch =
-    url.pathname.match(
-      /\/(?:share\/)?(?:video|note)\/(\d{10,})/
-    );
-
-  if (!videoMatch) {
-    throw new Error(
-      "没有从链接中找到 video_id"
-    );
+  if (!workMatch) {
+    throw new Error("没有从作品链接中找到 video / note 的作品 ID");
   }
 
-  const videoId =
-    videoMatch[1];
+  const workType = workMatch[1];
+  const objectId = String(workMatch[2]);
 
-  /*
-  activity_info
-  */
-  const activityInfoRaw =
-    url.searchParams.get(
-      "activity_info"
-    );
+  return {
+    shareUrl,
+    objectId,
+    workType,
+    reportType: workType === "note" ? "images" : "video",
+    label: workType === "note" ? "图文" : "视频"
+  };
+}
 
-  if (!activityInfoRaw) {
-    throw new Error(
-      "链接中没有 activity_info，请使用抖音 App 的「复制链接」"
-    );
+function parseDouyinAuthorShare(text) {
+  const shareUrl = extractShareUrl(text);
+  const url = new URL(shareUrl);
+
+  let secUid = url.searchParams.get("sec_uid");
+
+  if (!secUid) {
+    const match = url.pathname.match(/\/share\/user\/([^/?#]+)/);
+    if (match) secUid = decodeURIComponent(match[1]);
   }
 
-  let activityInfo;
-
-  try {
-    activityInfo =
-      JSON.parse(
-        activityInfoRaw
-      );
-  }
-  catch {
-    throw new Error(
-      "activity_info 解析失败"
-    );
-  }
-
-  /*
-  作者数字 UID
-  */
-  const ownerId =
-    activityInfo?.social_author_id;
-
-  if (
-    !ownerId ||
-    !/^\d+$/.test(
-      String(ownerId)
-    )
-  ) {
-    throw new Error(
-      "链接中没有找到 social_author_id"
-    );
+  if (!secUid || !/^MS4wLjAB[A-Za-z0-9_-]+$/.test(secUid)) {
+    throw new Error("作者主页链接中没有找到有效的 sec_uid");
   }
 
   return {
     shareUrl,
-    videoId:
-      String(videoId),
-    ownerId:
-      String(ownerId)
+    secUid
   };
 }
 
-
-function createFinalURL(
-  videoId,
-  ownerId
-) {
-  const url =
-    new URL(
-      REPORT_BASE
-    );
-
-  url.searchParams.set(
-    "report_type",
-    "video"
+function createFinalURL(parsed, secUid) {
+  const reportURL = new URL(
+    "https://aweme.snssdk.com/falcon/douyin_falcon/report/"
   );
 
-  url.searchParams.set(
-    "object_id",
-    videoId
-  );
+  reportURL.searchParams.set("report_type", parsed.reportType);
+  reportURL.searchParams.set("object_id", parsed.objectId);
+  reportURL.searchParams.set("sec_owner_id", secUid);
+  reportURL.searchParams.set("enter_from", "aweme_reflow");
+  reportURL.searchParams.set("hide_nav_bar", "1");
+  reportURL.searchParams.set("should_full_screen", "1");
 
-  url.searchParams.set(
-    "owner_id",
-    ownerId
-  );
+  const schemeParams = new URLSearchParams();
+  schemeParams.set("refer", "web");
+  schemeParams.set("from", "web_code_link");
+  schemeParams.set("group_id", parsed.objectId);
+  schemeParams.set("launch_h5_method", "click_wap_rf_video_report");
+  schemeParams.set("enter_from", "aweme_reflow");
+  schemeParams.set("hide_nav_bar", "1");
+  schemeParams.set("should_full_screen", "1");
+  schemeParams.set("url", reportURL.toString());
 
-  return url.toString();
+  return "snssdk1128://webview?" + schemeParams.toString();
 }
 
 
@@ -901,23 +873,25 @@ generateButton
   async () => {
 
     const rawInput =
-      document.querySelector(
-        "#dyInput"
-      )
-      .value
-      .trim();
+      document.querySelector("#dyInput").value.trim();
+
+    const rawAuthorInput =
+      document.querySelector("#dyAuthorInput").value.trim();
 
     const status =
-      document.querySelector(
-        "#dyStatus"
-      );
+      document.querySelector("#dyStatus");
 
     status.classList.remove("error");
 
     if (!rawInput) {
       status.classList.add("error");
-      status.textContent =
-        "请先贴上抖音 App 的完整分享链接。";
+      status.textContent = "请先贴上抖音作品的完整分享链接。";
+      return;
+    }
+
+    if (!rawAuthorInput) {
+      status.classList.add("error");
+      status.textContent = "请再贴上该作品作者的个人主页分享链接。";
       return;
     }
 
@@ -938,15 +912,13 @@ generateButton
     try {
 
       const parsed =
-        parseDouyinShare(
-          rawInput
-        );
+        parseDouyinShare(rawInput);
+
+      const author =
+        parseDouyinAuthorShare(rawAuthorInput);
 
       const finalURL =
-        createFinalURL(
-          parsed.videoId,
-          parsed.ownerId
-        );
+        createFinalURL(parsed, author.secUid);
 
       /*
       顯示資料
@@ -960,9 +932,10 @@ generateButton
       document.querySelector(
         "#dyVideoID"
       ).textContent =
-        parsed.videoId +
-        "（owner_id：" +
-        parsed.ownerId +
+        parsed.objectId +
+        "（" + parsed.label +
+        " / sec_owner_id：" +
+        author.secUid +
         "）";
 
       document.querySelector(
@@ -1110,6 +1083,16 @@ generateButton
       QRBox.appendChild(
         img
       );
+
+      const qrLabel =
+        document.createElement("div");
+      qrLabel.style.marginTop = "10px";
+      qrLabel.style.fontSize = "13px";
+      qrLabel.style.color = "#78877b";
+      qrLabel.style.textAlign = "center";
+      qrLabel.textContent =
+        parsed.label + " · " + parsed.objectId.slice(-6);
+      QRBox.appendChild(qrLabel);
 
       document.querySelector(
         "#dyResult"
