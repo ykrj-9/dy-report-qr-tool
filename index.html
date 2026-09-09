@@ -482,7 +482,7 @@ textarea:focus{
 }
 
 
-/* 抖音生成后：QR 在最前面，下面只保留生成网址 */
+/* 抖音生成后：QR 在最前面，下面只保留生成链接 */
 #dyResult.show{
   display:flex;
   flex-direction:column;
@@ -507,7 +507,7 @@ textarea:focus{
   display:none;
 }
 
-/* 生成网址区稍微收窄一点，更干净 */
+/* 生成链接区稍微收窄一点，更干净 */
 #dyResult > div:first-child > .item:nth-of-type(3){
   max-width:680px;
   margin:0 auto;
@@ -582,6 +582,26 @@ textarea,
 #biliResult > div:first-child > .item:nth-of-type(3){max-width:680px;margin:0 auto}
 #biliResult .qr-side .actions{display:none}
 
+
+/* ===== 手机端平台导航：2 × 2 ===== */
+@media (max-width: 640px) {
+  .tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .tabs .tab {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
 </style>
 
 </head>
@@ -590,7 +610,7 @@ textarea,
 <div class="page">
   <header class="hero">
     <div class="hero-mark">✦　✧　✦</div>
-    <h1 class="site-title">蘸豆小工具3.0</h1>
+    <h1 class="site-title">蘸豆小工具2.5</h1>
     <div class="title-rule"><span class="title-gem"></span></div>
   </header>
 
@@ -599,6 +619,7 @@ textarea,
       <button class="tab active" data-tab="douyin">🗑️抖印聚宝生成器</button>
       <button class="tab" data-tab="weibo">🧹微博聚宝生成器</button>
       <button class="tab" data-tab="bilibili">📺B站聚宝生成器</button>
+      <button class="tab" data-tab="rednote">📝小红书聚宝生成器</button>
       </div>
 
     <div class="content">
@@ -606,7 +627,7 @@ textarea,
         <h2 class="panel-title">抖印聚宝生成器</h2>
         <div class="panel-desc">贴上抖音作品链接，自动判断视频 / 图文并生成聚宝 QR。</div>
 
-        <div class="section-label">输入抖音完整链接</div>
+        <div class="section-label">输入抖音作品链接</div>
         <textarea id="dyInput" placeholder="例如：
 https://www.douyin.com/video/...
 https://www.douyin.com/note/...
@@ -653,7 +674,7 @@ https://www.iesdouyin.com/share/note/..."></textarea>
         <div class="panel-desc">貼上单篇微博或个人主页链接，生成对应的聚宝链接及二维码。</div>
 
         <div class="section-label">输入微博链接</div>
-        <textarea id="wbInput" placeholder="单篇微博：https://weibo.com/123456789/xxxxxxx&#10;个人主页：https://weibo.com/u/123456789"></textarea>
+        <textarea id="wbInput" placeholder="单篇微博：https://weibo.com/123456789/xxxxxx;个人主页：https://weibo.com/u/123456789"></textarea>
         <div class="hint">支援单篇微博和个人主页链接。</div>
 
         <div class="section-label" style="margin-top:18px;">QR Code 样式</div>
@@ -710,7 +731,7 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
       <section id="bilibili" class="panel">
         <h2 class="panel-title">B站聚宝生成器</h2>
-        <div class="panel-desc">贴上比站的 BV 号或个人主页链接，自动识别并生成对应的聚宝链接及二维码。</div>
+        <div class="panel-desc">贴上比站的  BV 号或个人主页链接，自动识别并生成对应的聚宝链接及二维码。</div>
 
         <div class="section-label">输入 Bilibili 视频 / 个人主页</div>
         <textarea id="biliInput" placeholder="BV号：BV123456ZZy&#10;个人主页：https://m.bilibili.com/space/123456789"></textarea>
@@ -731,6 +752,46 @@ https://www.iesdouyin.com/share/note/..."></textarea>
             <h3 class="result-title">二维码预览</h3>
             <div id="biliQrcode" class="qr-frame"></div>
             <div class="actions"><button id="biliSaveQR" class="small-btn">保存 QR</button></div>
+            <div class="qr-caption">长按即可保存约 1000px 高清 PNG。</div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="rednote" class="panel">
+        <h2 class="panel-title">红薯聚宝生成器(test)</h2>
+        <div class="panel-desc">贴上小红书笔记或「评论分享后打开」的链接，自动识别笔记 / 评论并生成聚宝 QR。</div>
+
+        <div class="section-label">输入小红书链接</div>
+        <textarea id="xhsInput" placeholder="笔记：https://www.xiaohongshu.com/discovery/item/xxx...;评论：贴上含 anchorCommentId=... 的评论分享链接"></textarea>
+        <div class="hint">支持 xiaohongshu.com / rednote.com；图文和影片笔记都使用 note。评论链接需包含 anchorCommentId。暂不支持用户主页举报。</div>
+
+        <button id="xhsGenerate" class="main-btn">生成聚宝 QR Code！</button>
+        <div id="xhsStatus" class="status"></div>
+
+        <div id="xhsResult" class="result">
+          <div>
+            <h3 class="result-title">生成结果</h3>
+            <div class="item">
+              <div class="item-title">辨识类型</div>
+              <div id="xhsTargetType" class="item-value"></div>
+            </div>
+            <div class="item">
+              <div class="item-title">目标 ID</div>
+              <div id="xhsTargetID" class="item-value"></div>
+            </div>
+            <div class="item">
+              <div class="item-title">生成聚宝链接</div>
+              <div id="xhsFinalURL" class="item-value"></div>
+            </div>
+          </div>
+
+          <div class="qr-side">
+            <h3 class="result-title">二维码预览</h3>
+            <div id="xhsQrcode" class="qr-frame"></div>
+            <div class="actions">
+              <button id="xhsSaveQR" class="small-btn">保存 QR</button>
+            </div>
             <div class="qr-caption">长按即可保存约 1000px 高清 PNG。</div>
           </div>
         </div>
@@ -770,7 +831,7 @@ function extractShareUrl(text) {
   );
 
   if (!match) {
-    throw new Error("没有找到网址");
+    throw new Error("没有找到链接");
   }
 
   return match[0]
@@ -788,7 +849,7 @@ function parseDouyinShare(text) {
 
   if (!workMatch) {
     if (/https?:\/\/v\.douyin\.com\//i.test(shareUrl)) {
-      throw new Error("暂不支持 v.douyin.com 短链接，请贴展开后的 /video/ 或 /note/ 作品网址");
+      throw new Error("暂不支持 v.douyin.com 短链接，请贴展开后的 /video/ 或 /note/ 作品链接");
     }
     throw new Error("没有从作品链接中找到 video / note 的作品 ID");
   }
@@ -849,7 +910,7 @@ generateButton
 
     if (!rawInput) {
       status.classList.add("error");
-      status.textContent = "请先贴上抖音作品网址。";
+      status.textContent = "请先贴上抖音作品链接。";
       return;
     }
 
@@ -1547,6 +1608,156 @@ function extractBVID(text){
   return m ? ("BV1" + m[0].slice(3)) : null;
 }
 
+
+/*
+=========================================
+小红书 / RedNote：笔记 + 评论
+=========================================
+*/
+function parseXhsTarget(rawText){
+  const match = String(rawText).match(/https?:\/\/[^\s<>"'，。！？、]+/);
+  if(!match) throw new Error("没有找到小红书链接。");
+
+  const shareUrl = match[0].replace(/[)\]}>，。！？、]+$/, "");
+  let url;
+  try{
+    url = new URL(shareUrl);
+  }catch{
+    throw new Error("链接格式不正确。");
+  }
+
+  const host = url.hostname.toLowerCase();
+  if(!(host === "xiaohongshu.com" || host.endsWith(".xiaohongshu.com") ||
+       host === "rednote.com" || host.endsWith(".rednote.com"))){
+    throw new Error("这不是小红书 / RedNote 链接。");
+  }
+
+  // 评论分享链接优先：anchorCommentId 就是已实测可用于举报 deeplink 的评论 ID。
+  const commentId = url.searchParams.get("anchorCommentId");
+  if(commentId){
+    return {
+      shareUrl,
+      type: "comment",
+      label: "评论",
+      targetId: commentId
+    };
+  }
+
+  // 图文、影片都属于 note。
+  const noteMatch = url.pathname.match(/\/(?:discovery\/item|explore)\/([0-9a-fA-F]{20,32})/);
+  if(noteMatch){
+    return {
+      shareUrl,
+      type: "note",
+      label: "笔记",
+      targetId: noteMatch[1]
+    };
+  }
+
+  if(/\/user\/profile\//.test(url.pathname)){
+    throw new Error("目前用户主页举报 Deeplink 尚未验证成功，暂不支持。");
+  }
+
+  throw new Error("没有识别到笔记 ID；评论链接需包含 anchorCommentId。");
+}
+
+function createXhsReportURL(parsed){
+  return "xhsdiscover://report?type=" +
+    encodeURIComponent(parsed.type) +
+    "&id=" +
+    encodeURIComponent(parsed.targetId);
+}
+
+function renderXhsQR(content){
+  const box = document.querySelector("#xhsQrcode");
+  box.innerHTML = "";
+
+  const qr = qrcode(0, "M");
+  qr.addData(content);
+  qr.make();
+
+  const moduleCount = qr.getModuleCount();
+  const marginModules = 4;
+  const cellSize = Math.max(1, Math.floor(1000 / (moduleCount + marginModules * 2)));
+  const canvasSize = (moduleCount + marginModules * 2) * cellSize;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = canvasSize;
+  canvas.height = canvasSize;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvasSize, canvasSize);
+  ctx.fillStyle = "#1B2620";
+
+  for(let row = 0; row < moduleCount; row++){
+    for(let col = 0; col < moduleCount; col++){
+      if(qr.isDark(row, col)){
+        ctx.fillRect(
+          (col + marginModules) * cellSize,
+          (row + marginModules) * cellSize,
+          cellSize,
+          cellSize
+        );
+      }
+    }
+  }
+
+  const img = document.createElement("img");
+  img.src = canvas.toDataURL("image/png");
+  img.alt = "小红书聚宝 QR Code";
+  box.appendChild(img);
+}
+
+document.querySelector("#xhsGenerate")?.addEventListener("click", () => {
+  const btn = document.querySelector("#xhsGenerate");
+  const status = document.querySelector("#xhsStatus");
+  const raw = document.querySelector("#xhsInput").value.trim();
+
+  status.classList.remove("error");
+  document.querySelector("#xhsResult").classList.remove("show");
+
+  if(!raw){
+    status.classList.add("error");
+    status.textContent = "请先贴上小红书笔记或评论分享链接。";
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = "解析中…";
+
+  try{
+    const parsed = parseXhsTarget(raw);
+    const finalURL = createXhsReportURL(parsed);
+
+    document.querySelector("#xhsTargetType").textContent = parsed.label;
+    document.querySelector("#xhsTargetID").textContent = parsed.targetId;
+    document.querySelector("#xhsFinalURL").textContent = finalURL;
+
+    renderXhsQR(finalURL);
+    document.querySelector("#xhsResult").classList.add("show");
+    status.textContent = "完成啦！✅";
+  }catch(e){
+    console.error(e);
+    status.classList.add("error");
+    status.textContent = "解析失败：" + e.message;
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+document.querySelector("#xhsSaveQR")?.addEventListener("click", () => {
+  const img = document.querySelector("#xhsQrcode img");
+  if(!img){
+    alert("请先生成 QR Code。");
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = img.src;
+  a.download = "XHS_QR_" + Math.random().toString(36).substring(2, 8) + ".png";
+  a.click();
+});
+
+
 function extractBiliUID(text){
   const m = String(text || "").match(/(?:https?:\/\/)?(?:m\.|www\.)?bilibili\.com\/space\/(\d+)/i);
   return m ? m[1] : null;
@@ -1647,7 +1858,7 @@ document.querySelector("#biliGenerate")?.addEventListener("click", () => {
       const aid = bvToAid(bvid);
       finalURL = "https://www.bilibili.com/appeal?avid=" + encodeURIComponent(aid);
       document.querySelector("#biliIDs").textContent = bvid + " / av" + aid;
-      document.querySelector("#biliResolvedURL").textContent = "视频举报（纯前端转换）";
+      document.querySelector("#biliResolvedURL").textContent = "影片举报（纯前端转换）";
     }else{
       if(/https?:\/\/b23\.tv\//i.test(raw)){
         throw new Error("暂不支持直接解析 b23.tv 短链；请贴 BV 号、含 BV 号的影片链接，或个人主页链接。");
