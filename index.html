@@ -877,7 +877,7 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
       <section id="rednote" class="panel">
         <h2 class="panel-title">红薯聚宝生成器(test)</h2>
-        <div class="panel-desc">贴上小红书笔记或「评论分享后打开」的链接，自动识别笔记 / 评论并生成聚宝二維碼。暂不支持用户主页举报T_T</div>
+        <div class="panel-desc">贴上小红书笔记或「评论分享后打开」的链接，自动识别笔记 / 评论并生成聚宝二维码。暂不支持用户主页举报。</div>
 
         <div class="section-label">输入小红书链接</div>
         <textarea id="xhsInput" placeholder="笔记：https://www.xiaohongshu.com/discovery/item/xxx...;评论：贴上含 anchorCommentId=... 的评论分享链接"></textarea>
@@ -917,12 +917,12 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
 
       <section id="douban" class="panel">
-        <h2 class="panel-title">豆瓣聚宝生成器(维修中)</h2>
-        <div class="panel-desc">贴上豆瓣帖子链接，再选择对应小组，生成投诉直达二维码。</div>
+        <h2 class="panel-title">豆瓣聚宝生成器(test)</h2>
+        <div class="panel-desc">贴上豆瓣帖子链接，再选择对应小组，生成投诉页面二维码。</div>
 
         <div class="section-label">输入豆瓣帖子链接</div>
-        <textarea id="dbInput" placeholder="例如：https://www.douban.com/group/topic/xxxxx../"></textarea>
-        <div class="hint">目前支持豆瓣小组帖子 /group/topic/…；请选择帖子所属的小组。</div>
+        <textarea id="dbInput" placeholder="例如：https://www.douban.com/group/topic/xxxxxxx/...."></textarea>
+        <div class="hint">贴上链接后记得选择对应小组哦！</div>
 
         <div class="douban-groups">
           <div class="section-label">选择小组</div>
@@ -1823,7 +1823,7 @@ function parseXhsTarget(rawText){
   }
 
   if(/\/user\/profile\//.test(url.pathname)){
-    throw new Error("目前暂不支持用户主页举报。TT");
+    throw new Error("目前用户主页举报 Deeplink 尚未验证成功，暂不支持。");
   }
 
   throw new Error("没有识别到笔记 ID；评论链接需包含 anchorCommentId。");
@@ -2091,14 +2091,22 @@ function parseDoubanTopic(text){
   if(!(host === "douban.com" || host.endsWith(".douban.com"))){
     throw new Error("这不是豆瓣链接。");
   }
-  const topicMatch = url.pathname.match(/\/group\/topic\/(\d+)/);
-  if(!topicMatch) throw new Error("没有识别到 /group/topic/ 帖子 ID。");
+  // 普通网页格式：https://www.douban.com/group/topic/499085470/
+  let topicMatch = url.pathname.match(/\/group\/topic\/(\d+)/);
+
+  // 豆瓣 App 分享格式：/doubanapp/dispatch?uri=%2Fgroup%2Ftopic%2F499085470...
+  if(!topicMatch && /\/doubanapp\/dispatch\/?$/.test(url.pathname)){
+    const dispatchUri = url.searchParams.get("uri") || "";
+    topicMatch = dispatchUri.match(/\/group\/topic\/(\d+)/);
+  }
+
+  if(!topicMatch) throw new Error("没有识别到豆瓣小组帖子 ID；支持 /group/topic/ 与 App 分享链接。");
   return { shareUrl, topicId: topicMatch[1] };
 }
 
 function createDoubanReportURL(groupId, topicId){
   return "douban://douban.com/group/" + encodeURIComponent(groupId) +
-    "/report?topic_id=" + encodeURIComponent(topicId);
+    "/report?topic_id=" + encodeURIComponent(topicId) + "&type=topic";
 }
 
 function renderDoubanQR(content){
