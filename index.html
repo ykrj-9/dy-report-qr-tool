@@ -718,6 +718,22 @@ textarea,
   }
 }
 
+
+/* ===== QR 颜色：黑色 + 绿色系色点 ===== */
+.qr-color-wrap{margin-top:16px}
+.qr-color-label{margin-bottom:9px;font-size:14px;font-weight:600;color:#536358}
+.qr-color-picker{display:flex;align-items:center;gap:11px;min-height:34px}
+.qr-color-dot{
+  width:24px;height:24px;padding:0;border:2px solid transparent;border-radius:50%;
+  background:var(--dot-color);cursor:pointer;appearance:none;position:relative;
+  box-shadow:0 0 0 1px rgba(52,66,56,.12);transition:.16s ease;
+}
+.qr-color-dot:hover{transform:scale(1.08)}
+.qr-color-dot.active{
+  box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--green);
+}
+@media(max-width:640px){.qr-color-picker{gap:13px}.qr-color-dot{width:25px;height:25px}}
+
 </style>
 
 </head>
@@ -726,7 +742,7 @@ textarea,
 <div class="page">
   <header class="hero">
     <div class="hero-mark">✦　✧　✦</div>
-    <h1 class="site-title">蘸豆小工具3.1</h1>
+    <h1 class="site-title">蘸豆小工具3.0</h1>
     <div class="title-rule"><span class="title-gem"></span></div>
   </header>
 
@@ -742,7 +758,7 @@ textarea,
     <div class="content">
       <section id="douyin" class="panel active">
         <h2 class="panel-title">抖印聚宝生成器</h2>
-        <div class="panel-desc">贴上抖音作品链接，自动判断视频 / 图文并生成聚宝 QR。</div>
+        <div class="panel-desc">贴上抖音作品链接，自动判断视频 / 图文并生成聚宝二维码。</div>
 
         <div class="section-label">输入抖音作品链接</div>
         <textarea id="dyInput" placeholder="例如：
@@ -751,6 +767,18 @@ https://www.douyin.com/note/...
 https://www.iesdouyin.com/share/video/...
 https://www.iesdouyin.com/share/note/..."></textarea>
         <div class="hint">支持 /video/ 与 /note/ 作品链接；暂不支持 v.douyin.com 短链接。</div>
+
+
+        <div class="qr-color-wrap">
+          <div class="qr-color-label">二维码🎨</div>
+          <div class="qr-color-picker" aria-label="二维码🎨">
+            <button type="button" class="qr-color-dot active" data-qr-color="#1B2620" style="--dot-color:#1B2620" title="黑色" aria-label="黑色"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#314B3A" style="--dot-color:#314B3A" title="墨绿" aria-label="墨绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#496B52" style="--dot-color:#496B52" title="深绿" aria-label="深绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#2E713A" style="--dot-color:#2E713A" title="豆瓣绿" aria-label="豆瓣绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#617A62" style="--dot-color:#617A62" title="灰绿" aria-label="灰绿"></button>
+          </div>
+        </div>
 
         <button id="dyGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="dyStatus" class="status"></div>
@@ -806,6 +834,18 @@ https://www.iesdouyin.com/share/note/..."></textarea>
           <div id="wbImageHint" class="hint">图片会自动裁切为正方形，并保留白色留边。</div>
         </div>
 
+
+        <div class="qr-color-wrap">
+          <div class="qr-color-label">QR 颜色</div>
+          <div class="qr-color-picker" aria-label="QR 颜色">
+            <button type="button" class="qr-color-dot active" data-qr-color="#1B2620" style="--dot-color:#1B2620" title="黑色" aria-label="黑色"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#314B3A" style="--dot-color:#314B3A" title="墨绿" aria-label="墨绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#496B52" style="--dot-color:#496B52" title="深绿" aria-label="深绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#2E713A" style="--dot-color:#2E713A" title="豆瓣绿" aria-label="豆瓣绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#617A62" style="--dot-color:#617A62" title="灰绿" aria-label="灰绿"></button>
+          </div>
+        </div>
+
         <button id="wbGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="wbStatus" class="status"></div>
 
@@ -854,6 +894,18 @@ https://www.iesdouyin.com/share/note/..."></textarea>
         <textarea id="biliInput" placeholder="BV号：BV123456ZZy&#10;个人主页：https://m.bilibili.com/space/123456789"></textarea>
         <div class="hint">支持 BV 号、Bilibili 视频链接及 /space/UID 个人主页链接；会自动判断类型。</div>
 
+
+        <div class="qr-color-wrap">
+          <div class="qr-color-label">QR 颜色</div>
+          <div class="qr-color-picker" aria-label="QR 颜色">
+            <button type="button" class="qr-color-dot active" data-qr-color="#1B2620" style="--dot-color:#1B2620" title="黑色" aria-label="黑色"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#314B3A" style="--dot-color:#314B3A" title="墨绿" aria-label="墨绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#496B52" style="--dot-color:#496B52" title="深绿" aria-label="深绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#2E713A" style="--dot-color:#2E713A" title="豆瓣绿" aria-label="豆瓣绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#617A62" style="--dot-color:#617A62" title="灰绿" aria-label="灰绿"></button>
+          </div>
+        </div>
+
         <button id="biliGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="biliStatus" class="status"></div>
 
@@ -877,11 +929,23 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
       <section id="rednote" class="panel">
         <h2 class="panel-title">红薯聚宝生成器(test)</h2>
-        <div class="panel-desc">贴上小红书笔记或「评论分享后打开」的链接，自动识别笔记 / 评论并生成聚宝二维码。暂不支持用户主页举报。</div>
+        <div class="panel-desc">贴上小红书笔记或「评论分享后打开」的链接，自动识别笔记 / 评论并生成聚宝 QR。</div>
 
         <div class="section-label">输入小红书链接</div>
         <textarea id="xhsInput" placeholder="笔记：https://www.xiaohongshu.com/discovery/item/xxx...;评论：贴上含 anchorCommentId=... 的评论分享链接"></textarea>
-        <div class="hint">支持 xiaohongshu.com / rednote.com；图文和影片笔记都使用 note。评论链接需包含 anchorCommentId。</div>
+        <div class="hint">支持 xiaohongshu.com / rednote.com；图文和影片笔记都使用 note。评论链接需包含 anchorCommentId。暂不支持用户主页举报。</div>
+
+
+        <div class="qr-color-wrap">
+          <div class="qr-color-label">QR 颜色</div>
+          <div class="qr-color-picker" aria-label="QR 颜色">
+            <button type="button" class="qr-color-dot active" data-qr-color="#1B2620" style="--dot-color:#1B2620" title="黑色" aria-label="黑色"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#314B3A" style="--dot-color:#314B3A" title="墨绿" aria-label="墨绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#496B52" style="--dot-color:#496B52" title="深绿" aria-label="深绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#2E713A" style="--dot-color:#2E713A" title="豆瓣绿" aria-label="豆瓣绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#617A62" style="--dot-color:#617A62" title="灰绿" aria-label="灰绿"></button>
+          </div>
+        </div>
 
         <button id="xhsGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="xhsStatus" class="status"></div>
@@ -918,11 +982,11 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
       <section id="douban" class="panel">
         <h2 class="panel-title">豆瓣聚宝生成器(test)</h2>
-        <div class="panel-desc">贴上豆瓣帖子链接，再选择对应小组，生成投诉页面二维码。</div>
+        <div class="panel-desc">贴上豆瓣小组帖子链接，再选择对应小组，生成投诉页面 QR。</div>
 
         <div class="section-label">输入豆瓣帖子链接</div>
-        <textarea id="dbInput" placeholder="例如：https://www.douban.com/group/topic/xxxxxxx/...."></textarea>
-        <div class="hint">贴上链接后记得选择对应小组哦！</div>
+        <textarea id="dbInput" placeholder="例如：&#10;https://www.douban.com/group/topic/499889049/&#10;或豆瓣 App 复制的 doubanapp/dispatch 分享链接"></textarea>
+        <div class="hint">支持普通 /group/topic/ 帖子链接及豆瓣 App 复制的 doubanapp/dispatch 分享链接；请选择帖子所属的小组。</div>
 
         <div class="douban-groups">
           <div class="section-label">选择小组</div>
@@ -943,6 +1007,18 @@ https://www.iesdouyin.com/share/note/..."></textarea>
               <button type="button" class="douban-group-btn" data-group-id="661193">火花四射观察室</button>
               <button type="button" class="douban-group-btn" data-group-id="751504">emoji乐子组</button>
             </div>
+          </div>
+        </div>
+
+
+        <div class="qr-color-wrap">
+          <div class="qr-color-label">QR 颜色</div>
+          <div class="qr-color-picker" aria-label="QR 颜色">
+            <button type="button" class="qr-color-dot active" data-qr-color="#1B2620" style="--dot-color:#1B2620" title="黑色" aria-label="黑色"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#314B3A" style="--dot-color:#314B3A" title="墨绿" aria-label="墨绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#496B52" style="--dot-color:#496B52" title="深绿" aria-label="深绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#2E713A" style="--dot-color:#2E713A" title="豆瓣绿" aria-label="豆瓣绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#617A62" style="--dot-color:#617A62" title="灰绿" aria-label="灰绿"></button>
           </div>
         </div>
 
@@ -978,6 +1054,19 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
 <script>
 let currentDouyinQR = null;
+
+let selectedQRCodeColor = "#1B2620";
+
+/* 所有平台共用同一组 QR 色票；色点本身就是实际颜色。 */
+document.querySelectorAll(".qr-color-dot").forEach(button => {
+  button.addEventListener("click", () => {
+    selectedQRCodeColor = button.dataset.qrColor || "#1B2620";
+    document.querySelectorAll(".qr-color-dot").forEach(dot => {
+      dot.classList.toggle("active", dot.dataset.qrColor === selectedQRCodeColor);
+    });
+  });
+});
+
 
 document.querySelectorAll(".tab").forEach(btn=>{
   btn.addEventListener("click",()=>{
@@ -1209,7 +1298,7 @@ generateButton
       );
 
       ctx.fillStyle =
-        "#1B2620";
+        selectedQRCodeColor;
 
       for (
         let row = 0;
@@ -1599,7 +1688,7 @@ function renderWeiboQR(content, centerImage){
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, canvasSize, canvasSize);
-  ctx.fillStyle = "#1D211D";
+  ctx.fillStyle = selectedQRCodeColor;
 
   for (let row = 0; row < moduleCount; row++) {
     for (let col = 0; col < moduleCount; col++) {
@@ -1855,7 +1944,7 @@ function renderXhsQR(content){
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, canvasSize, canvasSize);
-  ctx.fillStyle = "#1B2620";
+  ctx.fillStyle = selectedQRCodeColor;
 
   for(let row = 0; row < moduleCount; row++){
     for(let col = 0; col < moduleCount; col++){
@@ -1973,7 +2062,7 @@ function renderBiliQR(content){
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, canvasSize, canvasSize);
-  ctx.fillStyle = "#1B2620";
+  ctx.fillStyle = selectedQRCodeColor;
 
   for(let row = 0; row < moduleCount; row++){
     for(let col = 0; col < moduleCount; col++){
@@ -2125,7 +2214,7 @@ function renderDoubanQR(content){
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, canvasSize, canvasSize);
-  ctx.fillStyle = "#1B2620";
+  ctx.fillStyle = selectedQRCodeColor;
   for(let row=0; row<moduleCount; row++){
     for(let col=0; col<moduleCount; col++){
       if(qr.isDark(row,col)){
