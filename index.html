@@ -735,6 +735,32 @@ textarea,
 }
 @media(max-width:640px){.qr-color-picker{gap:13px}.qr-color-dot{width:25px;height:25px}}
 
+.batch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px;margin-top:18px}
+.batch-card{min-width:0;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel-2);text-align:center}
+.batch-card h3{font-size:14px;margin:0 0 12px}
+.batch-card img{display:block;width:100%;max-width:230px;height:auto;margin:0 auto;background:#fff;border-radius:6px}
+.batch-link{font-size:12px;line-height:1.6;overflow-wrap:anywhere;text-align:left;margin:12px 0;color:var(--muted);max-height:96px;overflow:auto}
+#batchInput{min-height:185px;font-size:14px}
+#batchInput::placeholder{font-size:12px;color:var(--soft)}
+
+.batch-options{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:16px 0}
+.batch-options input[type="text"]{width:112px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text);font:inherit;font-size:14px}
+.batch-number-option{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+.batch-number-option input{accent-color:var(--green)}
+@media(max-width:640px){.tabs .tab[data-tab="batchqr"]::after{content:"🔗 批量 QR"}}
+
+.batch-errors{margin-top:16px;padding:14px 16px;border:1px solid #d9bbbb;border-radius:12px;background:#fbf2f0;color:#8e5555;font-size:13px;line-height:1.6}
+.batch-errors[hidden]{display:none}
+.batch-errors ul{margin:8px 0 0;padding-left:20px;max-height:220px;overflow:auto}
+.batch-errors li{overflow-wrap:anywhere;margin:5px 0}
+#batchPrefix{width:160px;max-width:100%}
+
+.mode-nav{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px;background:var(--panel)}
+.mode-btn{min-height:56px;padding:12px 10px;border:1px solid var(--line);border-radius:12px;background:var(--field);color:var(--text);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.mode-btn:hover{background:var(--panel-2)}
+.mode-btn.active{background:var(--green);border-color:var(--green);color:#fff}
+.tabs[hidden],.content[hidden]{display:none!important}
+@media(max-width:640px){.mode-nav{gap:8px;padding:16px}.mode-btn{font-size:14px}}
 </style>
 
 </head>
@@ -743,21 +769,25 @@ textarea,
 <div class="page">
   <header class="hero">
     <div class="hero-mark">✦　✧　✦</div>
-    <h1 class="site-title">蘸豆小工具3.2</h1>
+    <h1 class="site-title">蘸豆小工具4.0</h1>
     <div class="title-rule"><span class="title-gem"></span></div>
   </header>
 
   <main class="toolbox">
-    <div class="tabs">
+    <div class="mode-nav" aria-label="选择工具类型">
+      <button type="button" id="platformMode" class="mode-btn" aria-pressed="false">各平台聚宝</button>
+      <button type="button" id="batchMode" class="mode-btn" aria-pressed="false">批量生成二维码</button>
+    </div>
+    <div class="tabs" id="platformTabs" hidden>
       <button class="tab active" data-tab="douyin">🗑️抖印聚宝生成器</button>
       <button class="tab" data-tab="weibo">🧹微博聚宝生成器</button>
       <button class="tab" data-tab="bilibili">📺B站聚宝生成器</button>
-      <button class="tab" data-tab="rednote">🍠红薯聚宝生成器(test)</button>
-      <button class="tab" data-tab="douban">🫘豆瓣聚宝生成器(test)</button>
+      <button class="tab" data-tab="rednote">🍠红薯聚宝生成器</button>
+      <button class="tab" data-tab="douban">🫘豆瓣聚宝生成器</button>
       </div>
 
-    <div class="content">
-      <section id="douyin" class="panel active">
+    <div class="content" id="toolContent" hidden>
+      <section id="douyin" class="panel">
         <h2 class="panel-title">抖印聚宝生成器</h2>
         <div class="panel-desc">贴上抖音作品链接，自动判断视频 / 图文并生成聚宝二维码。</div>
 
@@ -929,7 +959,7 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
 
       <section id="rednote" class="panel">
-        <h2 class="panel-title">红薯聚宝生成器(test)</h2>
+        <h2 class="panel-title">红薯聚宝生成器</h2>
         <div class="panel-desc">贴上小红书笔记或「评论分享后打开」的链接，自动识别笔记 / 评论并生成聚宝二维码（暂不支持用户主页举报）。</div>
 
         <div class="section-label">输入小红书链接</div>
@@ -982,7 +1012,7 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
 
       <section id="douban" class="panel">
-        <h2 class="panel-title">豆瓣聚宝生成器(test)</h2>
+        <h2 class="panel-title">豆瓣聚宝生成器</h2>
         <div class="panel-desc">贴上豆瓣小组帖子链接，再选择对应小组，生成投诉页面 QR。</div>
 
         <div class="section-label">输入豆瓣帖子链接</div>
@@ -1046,6 +1076,39 @@ https://www.iesdouyin.com/share/note/..."></textarea>
             <div class="qr-caption">长按即可保存约 1000px 高清 PNG。</div>
           </div>
         </div>
+      </section>
+
+      <section id="batchqr" class="panel">
+        <h2 class="panel-title">批量生成 QR</h2>
+        <div class="panel-desc">一行一个链接，一次生成多张二维码。扫码后直接打开对应链接。</div>
+        <label class="section-label" for="batchInput" style="display:block">输入链接（每行一个）</label>
+        <textarea id="batchInput" placeholder="https://example.com/one&#10;https://example.com/two&#10;https://example.com/three" spellcheck="false"></textarea>
+        <div class="hint">请粘贴完整的 http:// 或 https:// 链接；空白行会自动跳过，重复链接会分别生成。</div>
+        <div class="qr-color-wrap">
+          <div class="qr-color-label">二维码🎨</div>
+          <div class="qr-color-picker" aria-label="二维码🎨">
+            <button type="button" class="qr-color-dot active" data-qr-color="#1B2620" style="--dot-color:#1B2620" title="黑色" aria-label="黑色"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#314B3A" style="--dot-color:#314B3A" title="墨绿" aria-label="墨绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#496B52" style="--dot-color:#496B52" title="深绿" aria-label="深绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#2E713A" style="--dot-color:#2E713A" title="豆瓣绿" aria-label="豆瓣绿"></button>
+            <button type="button" class="qr-color-dot" data-qr-color="#617A62" style="--dot-color:#617A62" title="灰绿" aria-label="灰绿"></button>
+          </div>
+        </div>
+
+        <div class="batch-options">
+          <label for="batchPrefix">编号前缀</label>
+          <input id="batchPrefix" type="text" value="QR" placeholder="例如 QR、链接、蘸豆" maxlength="30" aria-label="图片编号前缀">
+          <label class="batch-number-option"><input id="batchNumbering" type="checkbox" checked>图片底部显示编号（从 1 开始）</label>
+        </div>
+        <div class="hint">颜色与编号会在点击生成后应用；前缀可自定义或留空，成功生成的图片从 1 开始连续编号。</div>
+        <button id="batchGenerate" class="main-btn" type="button">生成 QR Code！</button>
+        <div id="batchStatus" class="status" role="status" aria-live="polite"></div>
+        <div class="hint">生成后可逐张下载高清 PNG，手机也可以长按图片保存。</div>
+        <div id="batchErrors" class="batch-errors" hidden>
+          <strong id="batchErrorsTitle"></strong>
+          <ul id="batchErrorsList"></ul>
+        </div>
+        <div id="batchResults" class="batch-grid"></div>
       </section>
 
       <footer class="footer">
@@ -2265,6 +2328,162 @@ document.querySelector("#dbSaveQR")?.addEventListener("click", () => {
   a.href=img.src;
   a.download="DOUBAN_QR_"+Math.random().toString(36).substring(2,8)+".png";
   a.click();
+});
+
+</script>
+<script>
+
+// 批量生成普通链接 QR。每一行独立处理，不展开或改写链接。
+function createBatchQR(content, color, label){
+  const originalEncoder = qrcode.stringToBytes;
+  let qr;
+  try{
+    qrcode.stringToBytes = text => Array.from(new TextEncoder().encode(text));
+    qr = qrcode(0, "M");
+    qr.addData(content, "Byte");
+    qr.make();
+  } finally {
+    qrcode.stringToBytes = originalEncoder;
+  }
+  const modules = qr.getModuleCount();
+  const margin = 4;
+  const cell = Math.max(1, Math.floor(1000 / (modules + margin * 2)));
+  const size = (modules + margin * 2) * cell;
+  const canvas = document.createElement("canvas");
+  const labelHeight = label ? Math.round(size * 0.10) : 0;
+  canvas.width = size;
+  canvas.height = size + labelHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = color;
+  for(let row=0;row<modules;row++){
+    for(let col=0;col<modules;col++){
+      if(qr.isDark(row,col)) ctx.fillRect((col+margin)*cell,(row+margin)*cell,cell,cell);
+    }
+  }
+  if(label){
+    ctx.fillStyle = color;
+    ctx.font = "600 " + Math.round(size * 0.045) + "px Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, size / 2, size + labelHeight / 2, size * 0.90);
+  }
+  return canvas.toDataURL("image/png");
+}
+
+document.querySelector("#batchGenerate").addEventListener("click", async () => {
+  const button = document.querySelector("#batchGenerate");
+  const input = document.querySelector("#batchInput");
+  const status = document.querySelector("#batchStatus");
+  const results = document.querySelector("#batchResults");
+  const lines = input.value.split(/\r\n|\n|\r/).map((text,index)=>({text:text.trim(),line:index+1})).filter(item=>item.text);
+  const color = selectedQRCodeColor;
+  const numbering = document.querySelector("#batchNumbering").checked;
+  const prefix = document.querySelector("#batchPrefix").value.trim();
+  const errorBox = document.querySelector("#batchErrors");
+  const errorList = document.querySelector("#batchErrorsList");
+  const errorTitle = document.querySelector("#batchErrorsTitle");
+  results.replaceChildren();
+  errorList.replaceChildren();
+  errorBox.hidden = true;
+  errorTitle.textContent = "";
+  status.classList.remove("error");
+  if(!lines.length){
+    status.textContent = "请先输入链接，每行一个。";
+    return;
+  }
+  if(typeof qrcode !== "function"){
+    status.textContent = "二维码组件加载失败，请联网刷新后再试。";
+    status.classList.add("error");
+    return;
+  }
+  button.disabled = true;
+  input.disabled = true;
+  let success = 0, failed = 0;
+  const runId = Date.now();
+  try{
+    for(let index=0;index<lines.length;index++){
+      const item = lines[index];
+      const card = document.createElement("article");
+      card.className = "batch-card";
+      const heading = document.createElement("h3");
+      const number = success + 1;
+      const label = (prefix ? prefix + " " : "") + number;
+      heading.textContent = label + " · 第 " + item.line + " 行";
+      card.appendChild(heading);
+      const link = document.createElement("div");
+      link.className = "batch-link";
+      link.textContent = item.text;
+      try{
+        let url;
+        try{url = new URL(item.text);}catch{throw new Error("链接格式有误，请输入完整链接。");}
+        if(!/^https?:\/\//i.test(item.text) || !["http:","https:"].includes(url.protocol) || /\s/.test(item.text)){
+          throw new Error("请使用完整的 http:// 或 https:// 链接。");
+        }
+        let data;
+        try{data = createBatchQR(item.text, color, numbering ? label : "");}catch{throw new Error("链接太长，无法生成，请缩短后再试。");}
+        const image = document.createElement("img");
+        image.src = data;
+        image.alt = "第 " + item.line + " 行链接的二维码";
+        card.appendChild(image);
+        card.appendChild(link);
+        const save = document.createElement("button");
+        save.type = "button";
+        save.className = "small-btn";
+        save.textContent = "下载 PNG";
+        save.addEventListener("click",()=>{
+          const a = document.createElement("a");
+          a.href = data;
+          a.download = "QR_" + runId + "_" + String(number).padStart(3,"0") + ".png";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        });
+        card.appendChild(save);
+        success++;
+        results.appendChild(card);
+      }catch(error){
+        failed++;
+        const message = document.createElement("li");
+        message.textContent = "第 " + item.line + " 行：" + item.text + "（" + error.message + "）";
+        errorList.appendChild(message);
+        errorTitle.textContent = "未识别到 " + failed + " 行链接：";
+        errorBox.hidden = false;
+      }
+      status.textContent = "正在生成 " + (index+1) + " / " + lines.length + "…";
+      await new Promise(resolve=>setTimeout(resolve,0));
+    }
+    status.textContent = "已生成 " + success + " 张 QR" + (failed ? "，" + failed + " 行链接已跳过，请查看上方提示。" : "！（｡◝‿◜｡）");
+    status.classList.toggle("error", success === 0);
+  }finally{
+    button.disabled = false;
+    input.disabled = false;
+  }
+});
+
+
+</script>
+<script>
+
+let lastPlatformTool = "douyin";
+const platformModeButton = document.querySelector("#platformMode");
+const batchModeButton = document.querySelector("#batchMode");
+function selectToolMode(mode){
+  const platform = mode === "platform";
+  document.querySelector("#platformTabs").hidden = !platform;
+  document.querySelector("#toolContent").hidden = false;
+  platformModeButton.classList.toggle("active", platform);
+  batchModeButton.classList.toggle("active", !platform);
+  platformModeButton.setAttribute("aria-pressed", String(platform));
+  batchModeButton.setAttribute("aria-pressed", String(!platform));
+  document.querySelectorAll(".panel").forEach(panel=>panel.classList.remove("active"));
+  document.getElementById(platform ? lastPlatformTool : "batchqr").classList.add("active");
+}
+platformModeButton.addEventListener("click",()=>selectToolMode("platform"));
+batchModeButton.addEventListener("click",()=>selectToolMode("batch"));
+document.querySelectorAll("#platformTabs .tab").forEach(button=>{
+  button.addEventListener("click",()=>{lastPlatformTool = button.dataset.tab;});
 });
 
 </script>
