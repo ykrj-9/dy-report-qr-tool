@@ -1013,13 +1013,13 @@ https://www.iesdouyin.com/share/note/..."></textarea>
 
       <section id="douban" class="panel">
         <h2 class="panel-title">豆瓣聚宝生成器</h2>
-        <div class="panel-desc">贴上豆瓣小组帖子链接，再选择对应小组，生成投诉页面 QR。</div>
+        <div class="panel-desc">贴上个人帖子链接即可生成举报 QR；小组帖子仍需选择对应小组。</div>
 
         <div class="section-label">输入豆瓣帖子链接</div>
-        <textarea id="dbInput" placeholder="例如：&#10;https://www.douban.com/group/topic/xxxxxxx..&#10;或豆瓣 App 复制的 doubanapp/dispatch 分享链接"></textarea>
-        <div class="hint">支持普通 /group/topic/ 帖子链接及豆瓣 App 复制的 doubanapp/dispatch 分享链接；请选择帖子所属的小组。</div>
+        <textarea id="dbInput" placeholder="例如：&#10;https://www.douban.com/topic/501909865/&#10;或 https://www.douban.com/group/topic/xxxxxxx/（需选择小组）"></textarea>
+        <div class="hint">支持个人帖子、小组帖子及 App 分享链接。个人帖子无需选小组；/people/ 是用户主页，不能作为单篇帖子生成。</div>
 
-        <div class="douban-groups">
+        <div class="douban-groups" id="dbGroups">
           <div class="section-label">选择小组</div>
           <div class="douban-group-category">
             <div class="douban-category-title">🏠</div>
@@ -1067,7 +1067,7 @@ https://www.iesdouyin.com/share/note/..."></textarea>
           <div>
             <h3 class="result-title">生成结果</h3>
             <div class="item"><div class="item-title">帖子 ID</div><div id="dbTopicID" class="item-value"></div></div>
-            <div class="item"><div class="item-title">小组</div><div id="dbGroupName" class="item-value"></div></div>
+            <div class="item"><div class="item-title">类型 / 所属小组</div><div id="dbGroupName" class="item-value"></div></div>
             <div class="item"><div class="item-title">生成聚宝链接</div><div id="dbFinalURL" class="item-value"></div></div>
           </div>
           <div class="qr-side">
@@ -2222,7 +2222,7 @@ document.querySelector("#biliSaveQR")?.addEventListener("click", () => {
 
 
 /* =========================================
-   豆瓣：小组帖子投诉 Deeplink
+   豆瓣：个人 / 小组帖子投诉 Deeplink
    ========================================= */
 let selectedDoubanGroup = null;
 
@@ -2241,28 +2241,41 @@ document.querySelectorAll(".douban-group-btn").forEach(button => {
 
 function parseDoubanTopic(text){
   const raw = String(text || "").trim();
-  const match = raw.match(/https?:\/\/[^\s<>"'，。！？、]+/i);
-  if(!match) throw new Error("没有找到豆瓣帖子链接。");
-  const shareUrl = match[0].replace(/[)\]}>，。！？、]+$/, "");
+  const matches = raw.match(/https?:\/\/[^\s<>"'，。！？、]+/gi) || [];
+  if(matches.length !== 1) throw new Error(matches.length ? "请一次贴一个帖子链接。" : "没有找到豆瓣帖子链接。");
+  const shareUrl = matches[0].replace(/[)\]}>，。！？、]+$/, "");
   let url;
   try{ url = new URL(shareUrl); }
   catch{ throw new Error("链接格式不正确。"); }
-  const host = url.hostname.toLowerCase();
-  if(!(host === "douban.com" || host.endsWith(".douban.com"))){
-    throw new Error("这不是豆瓣链接。");
+  const isDouban = host => host === "douban.com" || host.endsWith(".douban.com");
+  if(!isDouban(url.hostname.toLowerCase())) throw new Error("这不是豆瓣链接。");
+  if(/^\/doubanapp\/dispatch\/?$/.test(url.pathname)){
+    let uri = url.searchParams.get("uri") || "";
+    if(/^%2f/i.test(uri)){ try{ uri = decodeURIComponent(uri); }catch{ throw new Error("分享链接格式不正确。"); } }
+    if(!uri || uri.startsWith("//")) throw new Error("分享链接没有可识别的帖子地址。");
+    try{ url = new URL(uri, "https://www.douban.com"); }
+    catch{ throw new Error("分享链接格式不正确。"); }
+    if(!["http:","https:","douban:"].includes(url.protocol) || !isDouban(url.hostname.toLowerCase())) throw new Error("分享链接不是豆瓣帖子地址。");
   }
-  // 普通网页格式：https://www.douban.com/group/topic/499085470/
-  let topicMatch = url.pathname.match(/\/group\/topic\/(\d+)/);
-
-  // 豆瓣 App 分享格式：/doubanapp/dispatch?uri=%2Fgroup%2Ftopic%2F499085470...
-  if(!topicMatch && /\/doubanapp\/dispatch\/?$/.test(url.pathname)){
-    const dispatchUri = url.searchParams.get("uri") || "";
-    topicMatch = dispatchUri.match(/\/group\/topic\/(\d+)/);
-  }
-
-  if(!topicMatch) throw new Error("没有识别到豆瓣小组帖子 ID；支持 /group/topic/ 与 App 分享链接。");
-  return { shareUrl, topicId: topicMatch[1] };
+  const profile = url.pathname.match(/^\/(?:people|user)\/([^/]+)\/?$/);
+  if(profile) throw new Error("这是用户主页（用户 ID：" + profile[1] + "），不是帖子链接。请打开其中一篇帖子后复制链接。");
+  const personal = url.pathname.match(/^\/topic\/([1-9]\d*)\/?$/);
+  const group = url.pathname.match(/^\/group\/topic\/([1-9]\d*)\/?$/);
+  if(!personal && !group) throw new Error("没有识别到帖子 ID；请贴 /topic/ 或 /group/topic/ 单篇链接。");
+  return { shareUrl, topicId:(personal || group)[1], kind:personal ? "personal" : "group" };
 }
+
+function refreshDoubanInput(){
+  document.querySelector("#dbResult").classList.remove("show");
+  document.querySelector("#dbQrcode").replaceChildren();
+  document.querySelector("#dbFinalURL").textContent = "";
+  const status = document.querySelector("#dbStatus");
+  status.textContent = ""; status.classList.remove("error");
+  let personal = false;
+  try{ personal = parseDoubanTopic(document.querySelector("#dbInput").value).kind === "personal"; }catch{}
+  document.querySelector("#dbGroups").hidden = personal;
+}
+document.querySelector("#dbInput").addEventListener("input", refreshDoubanInput);
 
 function createDoubanReportURL(groupId, topicId){
   return "douban://douban.com/group/" + encodeURIComponent(groupId) +
@@ -2305,14 +2318,15 @@ document.querySelector("#dbGenerate")?.addEventListener("click", () => {
   const raw = document.querySelector("#dbInput").value.trim();
   status.classList.remove("error");
   document.querySelector("#dbResult").classList.remove("show");
-  if(!raw){ status.classList.add("error"); status.textContent="请先贴上豆瓣小组帖子链接。"; return; }
-  if(!selectedDoubanGroup){ status.classList.add("error"); status.textContent="请选择帖子所属的小组。"; return; }
+  if(!raw){ status.classList.add("error"); status.textContent="请先贴上豆瓣帖子链接。"; return; }
   btn.disabled=true; status.textContent="解析中…";
   try{
     const parsed = parseDoubanTopic(raw);
-    const finalURL = createDoubanReportURL(selectedDoubanGroup.id, parsed.topicId);
+    if(parsed.kind === "group" && !selectedDoubanGroup) throw new Error("这是小组帖子，请选择帖子所属的小组。");
+    const groupId = parsed.kind === "personal" ? "0" : selectedDoubanGroup.id;
+    const finalURL = createDoubanReportURL(groupId, parsed.topicId);
     document.querySelector("#dbTopicID").textContent = parsed.topicId;
-    document.querySelector("#dbGroupName").textContent = selectedDoubanGroup.name + " · " + selectedDoubanGroup.id;
+    document.querySelector("#dbGroupName").textContent = parsed.kind === "personal" ? "个人帖子" : selectedDoubanGroup.name + " · " + selectedDoubanGroup.id;
     document.querySelector("#dbFinalURL").textContent = finalURL;
     renderDoubanQR(finalURL);
     document.querySelector("#dbResult").classList.add("show");
