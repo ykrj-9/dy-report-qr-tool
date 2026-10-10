@@ -761,6 +761,26 @@ textarea,
 .mode-btn.active{background:var(--green);border-color:var(--green);color:#fff}
 .tabs[hidden],.content[hidden]{display:none!important}
 @media(max-width:640px){.mode-nav{gap:8px;padding:16px}.mode-btn{font-size:14px}}
+
+#dyCaption {
+  appearance:none;
+  color-scheme:light;
+  width:100%;
+  box-sizing:border-box;
+  padding:12px 14px;
+  margin-bottom:8px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--field);
+  color:var(--text);
+  font:inherit;
+  font-size:14px;
+  outline:none;
+}
+#dyCaption:focus { border-color:var(--green); }
+#dyCaption::placeholder { color:var(--soft); opacity:1; font-size:12px; }
+#dyQrMeta { margin-top:10px; color:#78877b; font-size:13px; text-align:center; }
+
 </style>
 
 </head>
@@ -769,7 +789,7 @@ textarea,
 <div class="page">
   <header class="hero">
     <div class="hero-mark">✦　✧　✦</div>
-    <h1 class="site-title">蘸豆小工具4.0</h1>
+    <h1 class="site-title">蘸豆小工具5.0</h1>
     <div class="title-rule"><span class="title-gem"></span></div>
   </header>
 
@@ -789,15 +809,16 @@ textarea,
     <div class="content" id="toolContent" hidden>
       <section id="douyin" class="panel">
         <h2 class="panel-title">抖印聚宝生成器</h2>
-        <div class="panel-desc">贴上抖音作品链接，自动判断视频 / 图文并生成聚宝二维码。</div>
+        <div class="panel-desc">贴上抖音作品或用户主页分享链接，自动判断视频 / 图文 / 用户并生成聚宝二维码。</div>
 
-        <div class="section-label">输入抖音作品链接</div>
+        <div class="section-label">输入抖音作品 / 主页分享链接</div>
         <textarea id="dyInput" placeholder="例如：
 https://www.douyin.com/video/...
 https://www.douyin.com/note/...
 https://www.iesdouyin.com/share/video/...
-https://www.iesdouyin.com/share/note/..."></textarea>
-        <div class="hint">支持 /video/ 与 /note/ 作品链接；暂不支持 v.douyin.com 短链接。</div>
+https://www.iesdouyin.com/share/note/...
+或 App 复制的完整主页面分享链接"></textarea>
+        <div class="hint">暂不支持短链接。</div>
 
 
         <div class="qr-color-wrap">
@@ -810,6 +831,10 @@ https://www.iesdouyin.com/share/note/..."></textarea>
             <button type="button" class="qr-color-dot" data-qr-color="#617A62" style="--dot-color:#617A62" title="灰绿" aria-label="灰绿"></button>
           </div>
         </div>
+
+        <label class="section-label" for="dyCaption" style="display:block">二维码底部文字（选填）</label>
+        <input id="dyCaption" type="text" placeholder="例如：用户主页、视频标题或备注" maxlength="80">
+        <div class="hint">文字会一起保存在图片底部；留空不加字。修改后请重新点击生成。</div>
 
         <button id="dyGenerate" class="main-btn">生成聚宝 QR Code！</button>
         <div id="dyStatus" class="status"></div>
@@ -824,7 +849,7 @@ https://www.iesdouyin.com/share/note/..."></textarea>
             </div>
 
             <div class="item">
-              <div class="item-title">视频 ID</div>
+              <div class="item-title">作品 / 用户 ID</div>
               <div id="dyVideoID" class="item-value"></div>
             </div>
 
@@ -837,6 +862,7 @@ https://www.iesdouyin.com/share/note/..."></textarea>
           <div class="qr-side">
             <h3 class="result-title">二维码预览</h3>
             <div id="dyQrcode" class="qr-frame"></div>
+            <div id="dyQrMeta"></div>
             <div class="actions">
               <button id="dySaveQR" class="small-btn">保存 QR</button>
             </div>
@@ -1170,24 +1196,43 @@ function extractShareUrl(text) {
 function parseDouyinShare(text) {
   const shareUrl = extractShareUrl(text);
   const url = new URL(shareUrl);
-
-  const workMatch = url.pathname.match(
-    /\/(?:share\/)?(video|note)\/(\d{10,})/
-  );
-
-  if (!workMatch) {
-    if (/https?:\/\/v\.douyin\.com\//i.test(shareUrl)) {
-      throw new Error("暂不支持 v.douyin.com 短链接，请贴展开后的 /video/ 或 /note/ 作品链接");
-    }
-    throw new Error("没有从作品链接中找到 video / note 的作品 ID");
+  if (!["douyin.com", "www.douyin.com", "iesdouyin.com", "www.iesdouyin.com", "v.douyin.com"].includes(url.hostname)) {
+    throw new Error("请贴上抖音链接。");
   }
-
+  if (url.hostname === "v.douyin.com") {
+    throw new Error("暂不支持短链接，请贴展开后的作品链接或 App 主页面分享长链接。");
+  }
+  const userMatch = url.pathname.match(/^\/(?:share\/)?user\/(MS4w[\w-]+)\/?$/);
+  if (userMatch) {
+    const secOwnerId = userMatch[1];
+    const sharedSecUid = url.searchParams.get("sec_uid");
+    if (sharedSecUid && sharedSecUid !== secOwnerId) {
+      throw new Error("链接中的用户识别值不一致，请重新复制主页面分享链接。");
+    }
+    let activity;
+    try {
+      activity = JSON.parse(url.searchParams.get("activity_info") || "{}");
+    } catch {
+      throw new Error("分享信息格式不完整，请重新复制完整的 App 主页面分享链接。");
+    }
+    const authorId = activity && activity.social_author_id;
+    if (typeof authorId === "number" && !Number.isSafeInteger(authorId)) {
+      throw new Error("用户 ID 精度异常，请重新复制 App 分享链接。");
+    }
+    const objectId = authorId == null ? "" : String(authorId);
+    if (!/^\d+$/.test(objectId) || /^0+$/.test(objectId)) {
+      throw new Error("这条主页面链接缺少数字用户 ID，请在抖音 App 中打开主页面 → 分享 → 复制链接，贴上完整内容。");
+    }
+    return { shareUrl, objectId, secOwnerId, reportType: "user", label: "用户" };
+  }
+  const workMatch = url.pathname.match(/\/(?:share\/)?(video|note)\/(\d{10,})/);
+  if (!workMatch) {
+    throw new Error("没有找到作品 ID 或可支持的用户主页面链接。");
+  }
   const workType = workMatch[1];
-  const objectId = String(workMatch[2]);
-
   return {
     shareUrl,
-    objectId,
+    objectId: workMatch[2],
     workType,
     reportType: workType === "note" ? "images" : "video",
     label: workType === "note" ? "图文" : "视频"
@@ -1195,21 +1240,18 @@ function parseDouyinShare(text) {
 }
 
 function createFinalURL(parsed) {
-  const reportURL = new URL(
-    "https://aweme.snssdk.com/falcon/douyin_falcon/report/"
-  );
-
+  const reportURL = new URL("https://aweme.snssdk.com/falcon/douyin_falcon/report/");
   reportURL.searchParams.set("report_type", parsed.reportType);
   reportURL.searchParams.set("object_id", parsed.objectId);
+  if (parsed.reportType === "user") {
+    reportURL.searchParams.set("sec_owner_id", parsed.secOwnerId);
+    return "snssdk1128://webview?url=" + encodeURIComponent(reportURL.toString());
+  }
   reportURL.searchParams.set("enter_from", "aweme_reflow");
   reportURL.searchParams.set("hide_nav_bar", "1");
   reportURL.searchParams.set("should_full_screen", "1");
-
-  return "snssdk1128://webview?url=" +
-    encodeURIComponent(reportURL.toString()) +
-    "&from=webview&refer=web";
+  return "snssdk1128://webview?url=" + encodeURIComponent(reportURL.toString()) + "&from=webview&refer=web";
 }
-
 
 
 /*
@@ -1238,7 +1280,7 @@ generateButton
 
     if (!rawInput) {
       status.classList.add("error");
-      status.textContent = "请先贴上抖音作品链接。";
+      status.textContent = "请先贴上抖音作品或主页面分享链接。";
       return;
     }
 
@@ -1350,8 +1392,9 @@ generateButton
       canvas.width =
         canvasSize;
 
-      canvas.height =
-        canvasSize;
+      const caption = document.querySelector("#dyCaption").value.trim();
+      const captionHeight = caption ? Math.round(canvasSize * 0.10) : 0;
+      canvas.height = canvasSize + captionHeight;
 
       const ctx =
         canvas.getContext(
@@ -1364,8 +1407,8 @@ generateButton
       ctx.fillRect(
         0,
         0,
-        canvasSize,
-        canvasSize
+        canvas.width,
+        canvas.height
       );
 
       ctx.fillStyle =
@@ -1405,6 +1448,14 @@ generateButton
         }
       }
 
+      if (caption) {
+        ctx.fillStyle = selectedQRCodeColor;
+        ctx.font = "600 " + Math.round(canvasSize * 0.045) + "px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(caption, canvasSize / 2, canvasSize + captionHeight / 2, canvasSize * 0.90);
+      }
+
       const img =
         document.createElement(
           "img"
@@ -1425,15 +1476,8 @@ generateButton
         img
       );
 
-      const qrLabel =
-        document.createElement("div");
-      qrLabel.style.marginTop = "10px";
-      qrLabel.style.fontSize = "13px";
-      qrLabel.style.color = "#78877b";
-      qrLabel.style.textAlign = "center";
-      qrLabel.textContent =
+      document.querySelector("#dyQrMeta").textContent =
         parsed.label + " · " + parsed.objectId.slice(-6);
-      QRBox.appendChild(qrLabel);
 
       document.querySelector(
         "#dyResult"
